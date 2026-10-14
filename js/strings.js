@@ -7,7 +7,10 @@ window.MNN_STRINGS = {
     appTitle: 'Minna no Nihongo Recap',
     appSub: 'Lessons 1–8',
     langLabel: 'Language',
-    chooseChapter: 'Choose a lesson',
+    chooseChapter: 'Your journey map',
+    mapHint: 'Tap any village to travel there. You can visit them in any order.',
+    enterVillage: function (n) { return 'Enter Lesson ' + n; },
+    nextVillage: function (n) { return 'Walk to Lesson ' + n + ' ▶'; },
     lessonN: function (n) { return 'Lesson ' + n; },
     allLessons: 'All lessons',
     backToLesson: 'Back to lesson',
@@ -19,7 +22,9 @@ window.MNN_STRINGS = {
       expressions: 'Practice C phrases',
       countries: 'Countries',
       names: 'Names in the textbook',
-      conversation: 'Conversation phrases'
+      conversation: 'Conversation phrases',
+      places: 'Cities and places',
+      store: 'Useful words: department store'
     },
     orderPrompt: 'Put the words in the right order.',
     orderHint: 'Tap the words below in order',
@@ -27,18 +32,20 @@ window.MNN_STRINGS = {
       vocab: 'Vocabulary',
       grammar: 'Grammar',
       'vocab-quiz': 'Vocab Quiz',
-      'grammar-quiz': 'Grammar Quiz'
+      'grammar-quiz': 'Grammar Quiz',
+      dictation: 'Dictation'
     },
     modeDesc: {
       vocab: 'Review the words',
       grammar: 'Review the patterns',
       'vocab-quiz': 'Test your words',
-      'grammar-quiz': 'Story practice from the textbook'
+      'grammar-quiz': 'Story practice from the textbook',
+      dictation: 'Listen and write the word'
     },
     itemsCount: function (n) { return n + (n === 1 ? ' item' : ' items'); },
     questionsCount: function (n) { return n + (n === 1 ? ' question' : ' questions'); },
 
-    homeGreeting: 'Okaeri, {name}! Which lesson shall we explore today?',
+    homeGreeting: 'Okaeri, {name}! Where shall we travel today? Each village on the map is a lesson.',
     notYou: 'Not {name}? Change name',
     welcomeLine: 'Irasshaimase! I’m Neko-chan, and I’ll be your guide around Minna Town. Before we set off… what should I call you?',
     nameLabel: 'Your name',
@@ -64,6 +71,11 @@ window.MNN_STRINGS = {
     question: function (i, n) { return 'Question ' + i + ' of ' + n; },
     check: 'Check',
     typePlaceholder: 'Type your answer in Japanese',
+    dictPrompt: 'Listen carefully, then type the word in hiragana or katakana.',
+    dictPlay: 'Play',
+    dictSlow: 'Slower',
+    dictPlaceholder: 'Type what you hear',
+    noSpeech: 'This browser can’t play Japanese audio, so here is the word in romaji. Type it in kana.',
     correctLines: ['Sugoi, {name}! That’s right!', 'Correct! よくできました!', 'Perfect!', 'Nice one, {name}!', 'Exactly right!'],
     streakLine: function (n) { return n + ' in a row, {name}! You’re on fire!'; },
     combo: function (n) { return 'Combo ×' + n; },
@@ -102,7 +114,10 @@ window.MNN_STRINGS = {
     appTitle: '大家的日语 复习',
     appSub: '第1–8课',
     langLabel: '语言',
-    chooseChapter: '选择课程',
+    chooseChapter: '你的旅行地图',
+    mapHint: '点任意村庄就能走过去，顺序随你选。',
+    enterVillage: function (n) { return '进入第' + n + '课'; },
+    nextVillage: function (n) { return '前往第' + n + '课 ▶'; },
     lessonN: function (n) { return '第' + n + '课'; },
     allLessons: '所有课程',
     backToLesson: '返回本课',
@@ -114,7 +129,9 @@ window.MNN_STRINGS = {
       expressions: '练习C 用语',
       countries: '国家',
       names: '课文中的名称',
-      conversation: '会话用语'
+      conversation: '会话用语',
+      places: '城市和地点',
+      store: '参考词汇：百货商店'
     },
     orderPrompt: '请把词语排成正确的顺序。',
     orderHint: '按顺序点击下面的词语',
@@ -122,18 +139,20 @@ window.MNN_STRINGS = {
       vocab: '词汇',
       grammar: '语法',
       'vocab-quiz': '词汇测验',
-      'grammar-quiz': '语法测验'
+      'grammar-quiz': '语法测验',
+      dictation: '听写'
     },
     modeDesc: {
       vocab: '复习单词',
       grammar: '复习句型',
       'vocab-quiz': '测试单词',
-      'grammar-quiz': '课本练习·故事模式'
+      'grammar-quiz': '课本练习·故事模式',
+      dictation: '听发音，写单词'
     },
     itemsCount: function (n) { return n + ' 项'; },
     questionsCount: function (n) { return n + ' 题'; },
 
-    homeGreeting: '{name}，欢迎回来！今天想去哪一课看看呢？',
+    homeGreeting: '{name}，欢迎回来！今天去哪里呢？地图上的每个村庄就是一课。',
     notYou: '不是{name}？更改名字',
     welcomeLine: '欢迎光临！我是小猫，会带你逛遍大家町。出发之前……我该怎么称呼你呢？',
     nameLabel: '你的名字',
@@ -159,6 +178,11 @@ window.MNN_STRINGS = {
     question: function (i, n) { return '第 ' + i + ' 题 / 共 ' + n + ' 题'; },
     check: '确认',
     typePlaceholder: '请用日语输入答案',
+    dictPrompt: '仔细听，然后用平假名或片假名写出这个词。',
+    dictPlay: '播放',
+    dictSlow: '慢速',
+    dictPlaceholder: '输入你听到的词',
+    noSpeech: '这个浏览器无法播放日语语音，下面改为显示罗马字，请用假名输入。',
     correctLines: ['{name}，厉害！答对了！', '正确！よくできました！', '完美！', '{name}，好棒！', '完全正确！'],
     streakLine: function (n) { return '{name}，连续答对' + n + '题！势不可挡！'; },
     combo: function (n) { return '连击 ×' + n; },

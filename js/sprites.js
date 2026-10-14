@@ -184,6 +184,64 @@ window.MNN_SPRITES = (function () {
       rows: null // filled below from the shrine grid
     },
 
+    // The learner on the journey map: pink sun hat, matcha coat, cream backpack.
+    traveler: {
+      pal: { k: INK, h: '#e48aa2', H: '#9bb86a', s: '#f6d9c6', c: '#7fa04f', C: '#557d33', b: '#f0dcae', l: '#6e4a36' },
+      rows: [
+        '...kkkkkk...',
+        '..khhhhhhk..',
+        '.kHHHHHHHHk.',
+        '..kssssssk..',
+        '..kskssksk..',
+        '..kssssssk..',
+        '...kssssk...',
+        '..kccccccbk.',
+        '.kccCccccbbk',
+        '.ksccCcccbbk',
+        '.kkccCcccbbk',
+        '..kccccccbk.',
+        '..kcccccck..',
+        '...kl..lk...',
+        '...kl..lk...',
+        '..kkk..kkk..'
+      ]
+    },
+
+    pine: {
+      pal: { g: '#7fa04f', G: '#a5c27a', t: '#8a6248' },
+      rows: [
+        '....gg....',
+        '...gGgg...',
+        '..gggGgg..',
+        '...gggg...',
+        '..gGgggg..',
+        '.gggggGgg.',
+        '..gggggg..',
+        '.ggGggggg.',
+        'gggggggggg',
+        '....tt....',
+        '....tt....',
+        '...tttt...'
+      ]
+    },
+
+    sakura: {
+      pal: { p: '#f2b3c3', P: '#e48aa2', t: '#8a6248' },
+      rows: [
+        '...pppp...',
+        '.ppPpppp..',
+        'pppppPppp.',
+        'pPpppppppp',
+        'ppppPppPpp',
+        '.pppppppp.',
+        '..pPpppp..',
+        '....tt....',
+        '....tt....',
+        '....tt....',
+        '...tttt...'
+      ]
+    },
+
     lantern: {
       pal: { k: INK, r: '#ef9db1', d: '#d4708b', y: '#9bb86a' },
       rows: [
@@ -304,5 +362,8 @@ window.MNN_SPRITES = (function () {
     return '<svg class="scene" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMax meet" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' + g + '</svg>';
   }
 
-  return { svg: svg, scene: scene, CHARACTERS: CHARACTERS };
+  // Bare pixel rects, for drawing sprites inside another SVG (the journey map).
+  function raw(name) { return rects(SPRITES[name]); }
+
+  return { svg: svg, raw: raw, scene: scene, CHARACTERS: CHARACTERS };
 })();

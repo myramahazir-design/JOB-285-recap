@@ -2,7 +2,8 @@
 
 A review web app for *Minna no Nihongo* Lessons 1–8, styled as a cosy pixel-art Japanese street: shrines, vending machines and signboards.
 
-- Pick a lesson, then choose **Vocabulary**, **Grammar**, **Vocab Quiz** or **Grammar Quiz**.
+- The home screen is a journey map: each lesson is a village on a path. Tap any village and your traveller walks there.
+- In a lesson, choose **Vocabulary**, **Grammar**, **Vocab Quiz**, **Grammar Quiz** or **Dictation**. Dictation reads words aloud for you to type in kana, and is built automatically from each lesson's vocabulary.
 - After a vocab or grammar review, the app offers to take you to the matching quiz.
 - Use the **EN / 中文** toggle in the top-right corner to switch language. The app remembers your choice.
 - The app asks your name when you open it and uses it throughout. It forgets the name when the tab is closed.
@@ -84,6 +85,7 @@ Notes on the format:
 - Each quiz shows at most 20 questions. Story scenes don't count toward that.
 - Vocab items can have a `group`: `words`, `expressions`, `countries` or `names`. Items in `names` (textbook company and school names) appear in the review but not in the quiz.
 - Grammar items can have `notes`: a list of short points shown under the pattern.
+- Grammar items can have a `table`: `{ head: [...], rows: [{ label: {en, zh}, cells: [...] }] }`.
 - Any question can have a `translation`, shown under the Japanese.
 - Any question can also have `talk` (a short chat: `[{ who: 'you' | 'neko' | 'tanuki' | 'kitsune' | 'ミラー', jp: '…' }]`) and `card` (a name card: `{ name, country, job, org, age }`).
 - `{ type: 'scene', who, title, lines }` adds a story beat between questions. A quiz that contains scenes is played in its written order.

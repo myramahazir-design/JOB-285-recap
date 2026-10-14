@@ -10,9 +10,9 @@
   var modalRoot = document.getElementById('modal-root');
 
   var KANJI_NUM = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-  var MODES = ['vocab', 'grammar', 'vocab-quiz', 'grammar-quiz'];
-  var GUIDE = { vocab: 'tanuki', 'vocab-quiz': 'tanuki', grammar: 'kitsune', 'grammar-quiz': 'kitsune' };
-  var MODE_JP = { vocab: 'ごい', grammar: 'ぶんぽう', 'vocab-quiz': 'ごいクイズ', 'grammar-quiz': 'ぶんぽうクイズ' };
+  var MODES = ['vocab', 'grammar', 'vocab-quiz', 'grammar-quiz', 'dictation'];
+  var GUIDE = { vocab: 'tanuki', 'vocab-quiz': 'tanuki', grammar: 'kitsune', 'grammar-quiz': 'kitsune', dictation: 'neko' };
+  var MODE_JP = { vocab: 'ごい', grammar: 'ぶんぽう', 'vocab-quiz': 'ごいクイズ', 'grammar-quiz': 'ぶんぽうクイズ', dictation: 'ききとり' };
 
   // ---------- Small helpers ----------
 
@@ -117,7 +117,15 @@
     '辞書': 'じしょ', '雑誌': 'ざっし', '新聞': 'しんぶん', '手帳': 'てちょう', '鉛筆': 'えんぴつ',
     '時計': 'とけい', '傘': 'かさ', '車': 'くるま', '机': 'つくえ', '本': 'ほん', '語': 'ご', '方': 'かた',
     '気持': 'きも', '頑張': 'がんば', '初': 'はじ', '来': 'き', '行': 'い', '違': 'ちが', '願': 'ねが',
-    '練習': 'れんしゅう', '問題': 'もんだい', '会話': 'かいわ', '例': 'れい', '人': 'ひと'
+    '練習': 'れんしゅう', '問題': 'もんだい', '会話': 'かいわ', '例': 'れい', '人': 'ひと',
+    '教室': 'きょうしつ', '食堂': 'しょくどう', '事務所': 'じむしょ', '会議室': 'かいぎしつ', '受付': 'うけつけ',
+    '部屋': 'へや', '手洗': 'てあら', '階段': 'かいだん', '自動販売機': 'じどうはんばいき', '電話': 'でんわ',
+    '国': 'くに', '学校': 'がっこう', '靴': 'くつ', '売': 'う', '場': 'ば', '地下': 'ちか',
+    '何階': 'なんがい', '階': 'かい', '円': 'えん', '百': 'ひゃく', '千': 'せん', '万': 'まん', '見': 'み',
+    '新大阪': 'しんおおさか', '大阪': 'おおさか', '屋上': 'おくじょう', '遊園地': 'ゆうえんち',
+    '催': 'もよお', '物': 'もの', '会場': 'かいじょう', '眼鏡': 'めがね', '用品': 'ようひん', '旅行': 'りょこう',
+    '子': 'こ', '服': 'ふく', '文房具': 'ぶんぼうぐ', '家具': 'かぐ', '食器': 'しょっき', '電化製品': 'でんかせいひん',
+    '紳士服': 'しんしふく', '婦人服': 'ふじんふく', '化粧品': 'けしょうひん', '食品': 'しょくひん', '駐車場': 'ちゅうしゃじょう'
   };
   var KANJI_KEYS = Object.keys(KANJI_READINGS).sort(function (a, b) { return b.length - a.length; });
   var READING_RE = new RegExp('\\{([^|}]+)\\|([^}]+)\\}|(' + KANJI_KEYS.join('|') + ')|([\\u30A1-\\u30FA\\u30FC]+)', 'g');
@@ -180,12 +188,12 @@
 
   var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
-  function speak(text) {
+  function speak(text, slow) {
     if (!canSpeak) return;
     window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text.replace(/[〜～［］\[\]]/g, ''));
     u.lang = 'ja-JP';
-    u.rate = 0.85;
+    u.rate = slow ? 0.55 : 0.85;
     var voice = window.speechSynthesis.getVoices().filter(function (v) { return /^ja/i.test(v.lang); })[0];
     if (voice) u.voice = voice;
     window.speechSynthesis.speak(u);
@@ -213,6 +221,7 @@
 
   function onRouteChange() {
     route = parseRoute();
+    if (route.ch) store('mnn-here', String(route.ch.id));
     view = {};
     closeModal();
     render();
@@ -258,32 +267,155 @@
 
   function chapterStars(ch) {
     var best = bestScores();
-    return (best[ch.id + ':vocab-quiz'] || 0) + (best[ch.id + ':grammar-quiz'] || 0);
+    return ['vocab-quiz', 'grammar-quiz', 'dictation'].reduce(function (sum, m) {
+      return sum + (best[ch.id + ':' + m] || 0);
+    }, 0);
   }
 
+  // Each lesson is a village on a winding path. Tapping a village walks the traveller
+  // there along the path, then opens the lesson. Any village can be visited at any time.
+  var MAP = { w: 360, top: 104, step: 126, xs: [92, 262, 104, 252, 88, 268, 112, 248] };
+  var VILLAGE_ART = ['house', 'shrinePink', 'housePink', 'shrine'];
+  var traveling = false;
+
+  function mapIds() {
+    return Object.keys(DATA.chapters).map(Number).sort(function (a, b) { return a - b; });
+  }
+
+  function mapLayout() {
+    var ids = mapIds();
+    var pts = ids.map(function (id, i) { return { id: id, x: MAP.xs[i % MAP.xs.length], y: MAP.top + i * MAP.step }; });
+    var h = MAP.top * 2 + (ids.length - 1) * MAP.step;
+    var d = 'M' + pts[0].x + ' ' + pts[0].y;
+    for (var i = 1; i < pts.length; i++) {
+      var p0 = pts[i - 1], p1 = pts[i], m = (p1.y - p0.y) / 2;
+      d += ' C' + p0.x + ' ' + (p0.y + m) + ' ' + p1.x + ' ' + (p1.y - m) + ' ' + p1.x + ' ' + p1.y;
+    }
+    return { ids: ids, pts: pts, h: h, d: d };
+  }
+
+  function currentVillage() {
+    var here = Number(store('mnn-here'));
+    return DATA.chapters[here] ? here : mapIds()[0];
+  }
+
+  // Trees scattered with a fixed seed, so the map looks the same on every visit.
+  function mapScenery(layout) {
+    var out = '', seed = 11;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    for (var i = 0; i < 60; i++) {
+      var x = 6 + rnd() * 334, y = 6 + rnd() * (layout.h - 30);
+      var kind = rnd() < 0.35 ? 'sakura' : 'pine';
+      var clear = layout.pts.every(function (p) { return Math.abs(p.x - x) > 70 || Math.abs(p.y - y) > 60; }) &&
+        Math.abs(x - 180) > 40;
+      if (clear) out += '<g transform="translate(' + x.toFixed(0) + ' ' + y.toFixed(0) + ') scale(1.5)">' + SPR.raw(kind) + '</g>';
+    }
+    return out;
+  }
+
+  function pct(v, total) { return (v / total * 100).toFixed(3) + '%'; }
+
   function renderHome() {
-    var cards = Object.keys(DATA.chapters).sort(function (a, b) { return a - b; }).map(function (id) {
-      var ch = DATA.chapters[id];
-      return '<a class="sign sign--' + (ch.id % 4) + '" href="#/ch/' + ch.id + '">' +
-        '<span class="sign-kanji">' + jp('第' + kanjiNum(ch.id) + '課') + '</span>' +
-        '<span class="sign-num">' + esc(t('lessonN', ch.id)) + '</span>' +
-        '<span class="sign-sub" lang="ja">' + jp(ch.title.jp) + '</span>' +
+    var layout = mapLayout();
+    var here = currentVillage();
+    var herePt = layout.pts[layout.ids.indexOf(here)];
+    var next = layout.ids[layout.ids.indexOf(here) + 1];
+
+    var villages = layout.pts.map(function (p, i) {
+      var ch = DATA.chapters[p.id];
+      var stars = chapterStars(ch);
+      return '<button type="button" class="village' + (p.id === here ? ' is-here' : '') + (hasContent(ch) ? '' : ' is-soon') +
+        '" data-act="travel" data-ch="' + p.id + '" style="left:' + pct(p.x, MAP.w) + ';top:' + pct(p.y, layout.h) + '" ' +
+        'aria-label="' + esc(t('lessonN', p.id) + ' · ' + ch.title.jp) + '">' +
+        SPR.svg(VILLAGE_ART[i % VILLAGE_ART.length], 'village-art') +
+        '<span class="village-sign"><span class="village-kanji">' + jp('第' + kanjiNum(p.id) + '課') + '</span>' +
+        '<span class="village-title" lang="ja">' + jp(ch.title.jp) + '</span>' +
+        (stars ? '<span class="village-stars">★ ' + stars + ' / 9</span>' : '') +
         (hasContent(ch) ? '' : '<span class="badge badge--soft">' + esc(t('comingSoon')) + '</span>') +
-        (chapterStars(ch) ? '<span class="sign-stars">★ ' + chapterStars(ch) + ' / 6</span>' : '') +
-        '</a>';
+        '</span></button>';
     }).join('');
+
+    var map = '<div class="map px" style="aspect-ratio:' + MAP.w + ' / ' + layout.h + '">' +
+      '<svg class="map-svg" viewBox="0 0 ' + MAP.w + ' ' + layout.h + '" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' +
+      mapScenery(layout) +
+      '<path d="' + layout.d + '" class="map-road-edge"/>' +
+      '<path d="' + layout.d + '" class="map-road" id="map-path"/>' +
+      '<path d="' + layout.d + '" class="map-road-stones"/>' +
+      '</svg>' + villages +
+      '<div class="traveler" id="traveler" style="left:' + pct(herePt.x, MAP.w) + ';top:' + pct(herePt.y, layout.h) + '">' +
+      '<span class="traveler-name">' + esc(userName) + '</span>' + SPR.svg('traveler') + '</div>' +
+      '</div>';
 
     app.innerHTML = '<section class="screen">' +
       guide('neko', esc(t('homeGreeting'))) +
       '<button type="button" class="link-btn" data-act="change-name">' + esc(t('notYou')) + '</button>' +
+      '<div class="map-actions">' +
+      '<button type="button" class="btn" data-act="travel" data-ch="' + here + '">' + esc(t('enterVillage', here)) + '</button>' +
+      (next ? '<button type="button" class="btn btn--primary" data-act="travel" data-ch="' + next + '">' + esc(t('nextVillage', next)) + '</button>' : '') +
+      '</div>' +
       '<h1 class="section-title">' + esc(t('chooseChapter')) + '</h1>' +
-      '<div class="chapter-grid">' + cards + '</div>' +
-      '</section>';
+      '<p class="map-hint">' + esc(t('mapHint')) + '</p>' +
+      map + '</section>';
+  }
+
+  // Length along the road up to village number idx.
+  function roadLengthTo(layout, idx) {
+    if (idx <= 0) return 0;
+    var svg = app.querySelector('.map-svg');
+    var tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    tmp.setAttribute('d', layout.d.split(' C').slice(0, idx + 1).join(' C'));
+    svg.appendChild(tmp);
+    var len = tmp.getTotalLength();
+    svg.removeChild(tmp);
+    return len;
+  }
+
+  function travelTo(id) {
+    if (traveling) return;
+    var layout = mapLayout();
+    var from = currentVillage();
+    var go = function () {
+      traveling = false;
+      store('mnn-here', String(id));
+      navigate('#/ch/' + id);
+    };
+    var walker = document.getElementById('traveler');
+    var road = document.getElementById('map-path');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!walker || !road || from === id || reduce) return go();
+
+    var i0 = layout.ids.indexOf(from), i1 = layout.ids.indexOf(id);
+    var l0 = roadLengthTo(layout, i0), l1 = roadLengthTo(layout, i1);
+    var duration = Math.min(2800, 600 + Math.abs(i1 - i0) * 450);
+    var target = app.querySelector('.village[data-ch="' + id + '"]');
+    if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+    traveling = true;
+    walker.classList.add('is-walking');
+    var start = null, lastX = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var k = Math.min(1, (ts - start) / duration);
+      var e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      var pt = road.getPointAtLength(l0 + (l1 - l0) * e);
+      if (lastX !== null && Math.abs(pt.x - lastX) > 0.05) walker.classList.toggle('is-left', pt.x < lastX);
+      lastX = pt.x;
+      walker.style.left = pct(pt.x, MAP.w);
+      walker.style.top = pct(pt.y, layout.h);
+      if (k < 1) window.requestAnimationFrame(step);
+      else {
+        walker.classList.remove('is-walking');
+        walker.classList.add('is-arrived');
+        window.setTimeout(go, 350);
+      }
+    }
+    window.requestAnimationFrame(step);
   }
 
   // ---------- Chapter menu ----------
 
   function quizLength(ch, mode) {
+    if (mode === 'dictation') return Math.min(10, dictationPool(ch.vocab).length);
     if (mode === 'grammar-quiz') return Math.min(MAX_QUESTIONS, ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length);
     var n = ch.vocab.filter(function (v) { return v.group !== 'names' && v.en; }).length;
     return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
@@ -294,11 +426,12 @@
       vocab: t('itemsCount', ch.vocab.length),
       grammar: t('itemsCount', ch.grammar.length),
       'vocab-quiz': t('questionsCount', quizLength(ch, 'vocab-quiz')),
-      'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz'))
+      'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz')),
+      dictation: t('questionsCount', quizLength(ch, 'dictation'))
     };
     var best = bestScores();
     var modes = MODES.map(function (m) {
-      var isQuiz = m.indexOf('quiz') >= 0;
+      var isQuiz = m !== 'vocab' && m !== 'grammar';
       return '<a class="mode px' + (isQuiz ? ' mode--quiz' : '') + '" href="#/ch/' + ch.id + '/' + m + '">' +
         SPR.svg(GUIDE[m]) +
         '<span class="mode-text"><span class="mode-jp">' + MODE_JP[m] + '</span>' +
@@ -369,9 +502,19 @@
     }).join('');
     var card = '<div class="pattern" lang="ja">' + jp(g.pattern) + '</div>' +
       '<div class="pattern-title">' + esc(tx(g.title)) + '</div>' +
+      (g.table ? grammarTable(g.table) : '') +
       (notes ? '<ul class="notes"><li class="notes-head">' + esc(t('noteLabel')) + '</li>' + notes + '</ul>' : '') +
       (examples ? '<div class="examples"><h3>' + esc(t('examples')) + '</h3>' + examples + '</div>' : '');
     studyFrame(ch, 'grammar', ch.grammar, card, tj(g.explain));
+  }
+
+  function grammarTable(tb) {
+    return '<div class="g-table-wrap"><table class="g-table"><thead><tr><th></th>' +
+      tb.head.map(function (h) { return '<th lang="ja">' + jp(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      tb.rows.map(function (r) {
+        return '<tr><th scope="row">' + esc(tx(r.label)) + '</th>' +
+          r.cells.map(function (c) { return '<td lang="ja">' + jp(c) + '</td>'; }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div>';
   }
 
   function lessonDone(ch, mode) {
@@ -501,7 +644,42 @@
     return list.filter(function (q) { return q.type === 'scene' || ++count <= MAX_QUESTIONS; });
   }
 
+  // Dictation: plain kana words (no 〜, brackets or alternatives) that are easy to hear and type.
+  function dictationPool(vocab) {
+    return vocab.filter(function (v) {
+      var word = v.jp.replace(/[。、？！\s]/g, '');
+      return v.group !== 'names' && v.en && /^[\u3041-\u3096\u30A1-\u30FA\u30FC]+$/.test(word) && word.length <= 10;
+    });
+  }
+
+  function generateDictation(vocab) {
+    return shuffle(dictationPool(vocab)).slice(0, 10).map(function (v) {
+      var reading = v.jp.replace(/[。、？！\s]/g, '');
+      var meaning = { en: v.en, zh: v.zh };
+      return {
+        type: 'dictation',
+        prompt: both('dictPrompt'),
+        say: reading,
+        word: wordLabel(v),
+        meaning: meaning,
+        answers: [reading].concat(v.kanji ? [v.kanji.replace(/[。、？！\s]/g, '')] : []),
+        why: {},
+        explanation: both('vqExplain', wordLabel(v), meaning)
+      };
+    });
+  }
+
+  // Katakana → hiragana, so a dictation answer counts whichever kana it's typed in.
+  function toHiragana(s) {
+    return s.replace(/[\u30A1-\u30F6]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
+  }
+
+  function kanaRomaji(s) {
+    return ROMAJI(s.replace(/[\u3041-\u3096]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); }));
+  }
+
   function buildQuiz(ch, mode) {
+    if (mode === 'dictation') return generateDictation(ch.vocab);
     if (mode === 'grammar-quiz') {
       // A quiz with story scenes is played in its authored order.
       var story = ch.grammarQuiz.some(function (q) { return q.type === 'scene'; });
@@ -555,7 +733,7 @@
 
   // The text that fills （　） blanks once the question is answered.
   function fillText(q) {
-    if (q.type === 'input') return q.answers[0];
+    if (q.type === 'input' || q.type === 'dictation') return q.answers[0];
     if (q.type === 'order') return q.correctText;
     return tx(q.choices.filter(function (c) { return c.correct; })[0].value);
   }
@@ -636,12 +814,25 @@
           (a ? ' disabled' : '') + ' lang="' + (typeof c.value === 'string' ? 'ja' : lang) + '">' + tj(c.value) + '</button>';
       }).join('') + '</div>';
     } else {
+      var dict = q.type === 'dictation';
+      if (dict) {
+        body += '<div class="dict-controls">' + (canSpeak
+          ? '<button type="button" class="btn btn--blue dict-play" data-act="dict-play">🔊 ' + esc(t('dictPlay')) + '</button>' +
+            '<button type="button" class="btn btn--small" data-act="dict-slow">' + esc(t('dictSlow')) + '</button>'
+          : '<p class="dict-fallback">' + esc(t('noSpeech')) + '</p><div class="q-jp">' + esc(kanaRomaji(q.say)) + '</div>') + '</div>';
+      }
       body += '<form class="answer-form" data-act="submit" autocomplete="off">' +
         '<input class="answer-input' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '" id="quiz-answer" name="answer" lang="ja" ' +
-        'autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' + esc(t('typePlaceholder')) + '"' +
+        'autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' + esc(t(dict ? 'dictPlaceholder' : 'typePlaceholder')) + '"' +
         ' value="' + esc(a ? a.given : '') + '"' + (a ? ' readonly' : '') + '>' +
         (a ? '' : '<button class="btn btn--primary" type="submit">' + esc(t('check')) + '</button>') +
         '</form>';
+    }
+
+    // Dictation: once answered, reveal the word with its kanji, reading and meaning.
+    if (a && q.type === 'dictation') {
+      body += '<div class="dict-reveal"><div class="dict-word" lang="ja">' + jp(q.word) + '</div>' +
+        '<div class="dict-meaning">' + tj(q.meaning) + '</div></div>';
     }
 
     // After a correct answer, show the explanation too: knowing *why* makes it stick.
@@ -658,6 +849,12 @@
 
     var input = app.querySelector('.answer-input');
     if (input && !a) input.focus({ preventScroll: true });
+
+    // Play each dictation word once automatically (not again on a language switch).
+    if (q.type === 'dictation' && !a && quiz.spoken !== q) {
+      quiz.spoken = q;
+      window.setTimeout(function () { speak(q.say); }, 350);
+    }
   }
 
   function answerQuestion(given, choiceIdx) {
@@ -674,8 +871,9 @@
       given = words.join(' ');
       correct = q.answers.indexOf(words.join('')) >= 0;
     } else {
-      var norm = normalizeAnswer(given);
-      correct = q.answers.some(function (ans) { return normalizeAnswer(ans) === norm; });
+      var fold = q.type === 'dictation' ? toHiragana : function (x) { return x; };
+      var norm = fold(normalizeAnswer(given));
+      correct = q.answers.some(function (ans) { return fold(normalizeAnswer(ans)) === norm; });
       Object.keys(q.why).forEach(function (k) {
         if (normalizeAnswer(k) === norm) why = q.why[k];
       });
@@ -709,7 +907,8 @@
     var character = GUIDE[route.mode];
 
     openModal(function () {
-      var correctHtml = q.type === 'input' ? jp(q.answers.join(' / '))
+      var correctHtml = q.type === 'dictation' ? jp(q.word)
+        : q.type === 'input' ? jp(q.answers.join(' / '))
         : q.type === 'order' ? jp(q.correctText)
         : tj(q.choices.filter(function (c) { return c.correct; })[0].value);
       var givenHtml = q.type === 'choice' ? tj(q.choices[choiceIdx].value) : jp(given || t('emptyAnswer'));
@@ -844,6 +1043,13 @@
     if (act === 'next' && items) {
       if (view.index < items.length - 1) { view.index++; render(); }
       else lessonDone(route.ch, route.mode);
+    }
+    if (act === 'travel') return travelTo(Number(el.getAttribute('data-ch')));
+    if ((act === 'dict-play' || act === 'dict-slow') && view.quiz) {
+      speak(view.quiz.questions[view.quiz.i].say, act === 'dict-slow');
+      var field = app.querySelector('.answer-input');
+      if (field && !view.quiz.answered) field.focus({ preventScroll: true });
+      return;
     }
     if (act === 'speak') {
       var v = route.ch.vocab[view.index];
