@@ -20,6 +20,17 @@ MNN.registerChapter({
   id: 1,
   title: { jp: 'はじめまして', en: 'Nice to meet you', zh: '初次见面' },
 
+  // The lesson's 会話, shown first in the Conversation section.
+  dialogue: {
+    title: '初めまして',
+    parts: [[
+      { who: '佐藤', jp: 'おはよう ございます。', en: 'Good morning.', zh: '早上好。' },
+      { who: '山田', jp: 'おはよう ございます。\n佐藤さん、こちらは マイク・ミラーさんです。', en: 'Good morning.\nMs. Sato, this is Mr. Mike Miller.', zh: '早上好。\n佐藤女士，这位是迈克·米勒先生。' },
+      { who: 'ミラー', jp: '初めまして。\nマイク・ミラーです。\nアメリカから 来ました。\nどうぞ よろしく。', en: 'How do you do?\nI’m Mike Miller.\nI’m from America.\nPleased to meet you.', zh: '初次见面。\n我是迈克·米勒。\n我来自美国。\n请多关照。' },
+      { who: '佐藤', jp: '佐藤けい子です。\nどうぞ よろしく。', en: 'I’m Keiko Sato.\nPleased to meet you.', zh: '我是佐藤惠子。\n请多关照。' }
+    ]]
+  },
+
   vocab: [
     // ----- Words -----
     { group: 'words', jp: 'わたし', en: 'I', zh: '我' },
@@ -53,6 +64,8 @@ MNN.registerChapter({
     { group: 'words', jp: 'いいえ', en: 'no', zh: '不是' },
 
     // ----- Practice C phrases -----
+    { group: 'conversation', jp: 'おはよう ございます。', en: 'Good morning.', zh: '早上好。',
+      note: { en: 'Greet people this way in the morning, for example when you arrive at the office or school.', zh: '早上见面时的问候，比如到公司或学校的时候。' } },
     { group: 'expressions', jp: 'はじめまして。', kanji: '初めまして。', en: 'How do you do?', zh: '初次见面。',
       note: { en: 'Literally “I am meeting you for the first time.” Usually the first thing you say when introducing yourself.', zh: '字面意思是“第一次见面”。通常在自我介绍的开头说。' } },
     { group: 'expressions', jp: '〜から きました。', kanji: '〜から 来ました。', en: 'I’m from 〜 (country).', zh: '我来自～（国家）。',
