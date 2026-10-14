@@ -6,13 +6,13 @@
 window.MNN_SPRITES = (function () {
   'use strict';
 
-  var INK = '#2a1a12';
+  var INK = '#4a3b33'; // soft cocoa outline
 
   var SPRITES = {
-    // Tanuki-sensei: vocabulary guide, wears an indigo happi coat.
+    // Tanuki-sensei: vocabulary guide, wears a matcha happi coat.
     tanuki: {
       pal: { k: INK, b: '#9a6a3f', d: '#4e3424', c: '#f3dfb8', w: '#ffffff', p: '#f2a3a0',
-             n: '#1b1b1b', i: '#2f4a7a', t: '#f4f1e6', o: '#d24a3a' },
+             n: '#2e2620', i: '#557d33', t: '#fffaf4', o: '#e07a93' },
       rows: [
         '..kk........kk..',
         '.kddk......kddk.',
@@ -40,7 +40,7 @@ window.MNN_SPRITES = (function () {
     // Kitsune-san: grammar guide, dressed as a shrine maiden (miko).
     kitsune: {
       pal: { k: INK, b: '#e0812f', c: '#fff4e0', p: '#f2a3a0', w: '#ffffff', n: '#1b1b1b',
-             t: '#f6f3ec', r: '#c73b33', y: '#f2c14e' },
+             t: '#fffaf4', r: '#e07a93', y: '#9bb86a' },
       rows: [
         '.k............k.',
         '.kk..........kk.',
@@ -68,7 +68,7 @@ window.MNN_SPRITES = (function () {
     // Neko-chan: host and quiz-results cat, in a pink yukata.
     neko: {
       pal: { k: INK, b: '#a9aeb8', d: '#6b7180', c: '#f4f1ea', p: '#f2a3a0', w: '#ffffff',
-             y: '#e98aa6', t: '#fff6fa', o: '#f2c14e' },
+             y: '#ef9db1', t: '#fff6fa', o: '#9bb86a' },
       rows: [
         '................',
         '.kk..........kk.',
@@ -94,7 +94,7 @@ window.MNN_SPRITES = (function () {
     },
 
     torii: {
-      pal: { d: '#3b2a24', r: '#d24a3a', y: '#f2c14e' },
+      pal: { d: '#4e6e34', r: '#e07a93', y: '#fbe3e9' },
       rows: [
         'dddddddddddddddddddddddd',
         '.rrrrrrrrrrrrrrrrrrrrrr.',
@@ -117,8 +117,8 @@ window.MNN_SPRITES = (function () {
 
     // Wooden machiya townhouse: tiled roof, plaster upper floor, lattice front, noren curtain.
     house: {
-      pal: { k: INK, t: '#5d6672', T: '#7d8794', W: '#6e4a2c', w: '#a87a4b', p: '#efe6cf',
-             l: '#4f3622', n: '#2f5a74', N: '#e9e2cc', d: '#3a2a1e', s: '#a19f8e' },
+      pal: { k: INK, t: '#6f8f4e', T: '#97b46f', W: '#8a6248', w: '#b98d6a', p: '#fff4f2',
+             l: '#6e4a36', n: '#e07a93', N: '#fff6f0', d: '#4a3428', s: '#d4c5b9' },
       rows: [
         '.....tttttttttttttt.....',
         '...tTttTttTttTttTttTt...',
@@ -143,17 +143,17 @@ window.MNN_SPRITES = (function () {
       ]
     },
 
-    houseGreen: {
-      pal: { k: INK, t: '#5d6672', T: '#7d8794', W: '#6e4a2c', w: '#a87a4b', p: '#efe6cf',
-             l: '#4f3622', n: '#557a2c', N: '#e9e2cc', d: '#3a2a1e', s: '#a19f8e' },
+    housePink: {
+      pal: { k: INK, t: '#d9849b', T: '#efa9bb', W: '#8a6248', w: '#b98d6a', p: '#fff4f2',
+             l: '#6e4a36', n: '#7fa04f', N: '#fff6f0', d: '#4a3428', s: '#d4c5b9' },
       rows: null // filled below from the house grid
     },
 
     // Wooden shrine: green copper roof with crossed chigi beams, shimenawa rope with paper
     // streamers, lattice doors and an offering box.
     shrine: {
-      pal: { k: INK, c: '#6e4a2c', g: '#5f8a7a', G: '#86ab9c', y: '#e5b13a', r: '#d6c07a',
-             W: '#5a3b24', w: '#94673f', p: '#fbfaef', l: '#4a3220', d: '#2e2219', b: '#b98a55', s: '#a7a796' },
+      pal: { k: INK, c: '#8a6248', g: '#7fa04f', G: '#a5c27a', y: '#f7c6d2', r: '#f0dcae',
+             W: '#7a5540', w: '#b08463', p: '#fffaf4', l: '#5e4030', d: '#3e2c22', b: '#d98fa3', s: '#d4c5b9' },
       rows: [
         '.c....................c.',
         '..c..................c..',
@@ -178,8 +178,14 @@ window.MNN_SPRITES = (function () {
       ]
     },
 
+    shrinePink: {
+      pal: { k: INK, c: '#8a6248', g: '#e48aa2', G: '#f4b6c5', y: '#e3ebcc', r: '#f0dcae',
+             W: '#7a5540', w: '#b08463', p: '#fffaf4', l: '#5e4030', d: '#3e2c22', b: '#9bb86a', s: '#d4c5b9' },
+      rows: null // filled below from the shrine grid
+    },
+
     lantern: {
-      pal: { k: INK, r: '#d24a3a', d: '#8f2a20', y: '#f2c14e' },
+      pal: { k: INK, r: '#ef9db1', d: '#d4708b', y: '#9bb86a' },
       rows: [
         '...kk...',
         '..kkkk..',
@@ -197,7 +203,7 @@ window.MNN_SPRITES = (function () {
 
     // Vertical shop signboard (kanban).
     sign: {
-      pal: { k: INK, y: '#fff2b3', r: '#d24a3a', p: '#e86a92' },
+      pal: { k: INK, y: '#fff6f8', r: '#d9637f', p: '#9bb86a' },
       rows: [
         'kkkkkk',
         'kyyyyk',
@@ -221,7 +227,7 @@ window.MNN_SPRITES = (function () {
     },
 
     stoneLantern: {
-      pal: { s: '#9aa3ad', d: '#6b7180', y: '#f2c14e' },
+      pal: { s: '#b9b3a8', d: '#958d82', y: '#f7c6d2' },
       rows: [
         '...ss...',
         '.dddddd.',
@@ -238,7 +244,8 @@ window.MNN_SPRITES = (function () {
     }
   };
 
-  SPRITES.houseGreen.rows = SPRITES.house.rows;
+  SPRITES.housePink.rows = SPRITES.house.rows;
+  SPRITES.shrinePink.rows = SPRITES.shrine.rows;
 
   var CHARACTERS = {
     tanuki: { en: 'Tanuki-sensei', zh: '狸猫老师', jp: 'たぬき先生' },
@@ -276,12 +283,12 @@ window.MNN_SPRITES = (function () {
   function scene() {
     var W = 184, H = 26, ground = 26;
     var items = [
-      ['shrine', 2, ground - 20],
+      ['shrinePink', 2, ground - 20],
       ['stoneLantern', 28, ground - 11],
       ['torii', 38, ground - 16],
       ['house', 66, ground - 20],
       ['sign', 92, ground - 18],
-      ['houseGreen', 100, ground - 20],
+      ['housePink', 100, ground - 20],
       ['lantern', 128, 2],
       ['lantern', 146, 2],
       ['stoneLantern', 136, ground - 11],
