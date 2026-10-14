@@ -18,7 +18,8 @@ window.MNN_STRINGS = {
       words: 'Words',
       expressions: 'Practice C phrases',
       countries: 'Countries',
-      names: 'Names in the textbook'
+      names: 'Names in the textbook',
+      conversation: 'Conversation phrases'
     },
     orderPrompt: 'Put the words in the right order.',
     orderHint: 'Tap the words below in order',
@@ -112,7 +113,8 @@ window.MNN_STRINGS = {
       words: '单词',
       expressions: '练习C 用语',
       countries: '国家',
-      names: '课文中的名称'
+      names: '课文中的名称',
+      conversation: '会话用语'
     },
     orderPrompt: '请把词语排成正确的顺序。',
     orderHint: '按顺序点击下面的词语',
