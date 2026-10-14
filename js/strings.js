@@ -24,7 +24,8 @@ window.MNN_STRINGS = {
       names: 'Names in the textbook',
       conversation: 'Conversation phrases',
       places: 'Cities and places',
-      store: 'Useful words: department store'
+      store: 'Useful words: department store',
+      calendar: 'Calendar'
     },
     orderPrompt: 'Put the words in the right order.',
     orderHint: 'Tap the words below in order',
@@ -34,7 +35,8 @@ window.MNN_STRINGS = {
       'vocab-quiz': 'Vocab Quiz',
       'grammar-quiz': 'Grammar Quiz',
       dictation: 'Dictation',
-      phrases: 'Conversation'
+      phrases: 'Conversation',
+      calendar: 'Calendar'
     },
     modeDesc: {
       vocab: 'Review the words',
@@ -42,7 +44,8 @@ window.MNN_STRINGS = {
       'vocab-quiz': 'Test your words',
       'grammar-quiz': 'Story practice from the textbook',
       dictation: 'Listen and write the word',
-      phrases: 'Set phrases and when to use them'
+      phrases: 'Set phrases and when to use them',
+      calendar: 'Dates, months, last / this / next'
     },
     itemsCount: function (n) { return n + (n === 1 ? ' item' : ' items'); },
     questionsCount: function (n) { return n + (n === 1 ? ' question' : ' questions'); },
@@ -141,7 +144,8 @@ window.MNN_STRINGS = {
       names: '课文中的名称',
       conversation: '会话用语',
       places: '城市和地点',
-      store: '参考词汇：百货商店'
+      store: '参考词汇：百货商店',
+      calendar: '日期'
     },
     orderPrompt: '请把词语排成正确的顺序。',
     orderHint: '按顺序点击下面的词语',
@@ -151,7 +155,8 @@ window.MNN_STRINGS = {
       'vocab-quiz': '词汇测验',
       'grammar-quiz': '语法测验',
       dictation: '听写',
-      phrases: '会话'
+      phrases: '会话',
+      calendar: '日期'
     },
     modeDesc: {
       vocab: '复习单词',
@@ -159,7 +164,8 @@ window.MNN_STRINGS = {
       'vocab-quiz': '测试单词',
       'grammar-quiz': '课本练习·故事模式',
       dictation: '听发音，写单词',
-      phrases: '常用语和使用场合'
+      phrases: '常用语和使用场合',
+      calendar: '日期、月份、上／这／下'
     },
     itemsCount: function (n) { return n + ' 项'; },
     questionsCount: function (n) { return n + ' 题'; },

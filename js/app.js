@@ -11,18 +11,21 @@
 
   var KANJI_NUM = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
   // Modes shown on a lesson's menu. The phrase quiz is reached from the end of Conversation.
-  var MODES = ['vocab', 'grammar', 'phrases', 'vocab-quiz', 'grammar-quiz', 'dictation'];
-  var ALL_MODES = MODES.concat(['phrases-quiz']);
-  var STUDY_MODES = ['vocab', 'grammar', 'phrases'];
+  // 'calendar' only appears for lessons that teach dates (ch.calendar).
+  var MODES = ['vocab', 'grammar', 'phrases', 'calendar', 'vocab-quiz', 'grammar-quiz', 'dictation'];
+  var ALL_MODES = MODES.concat(['phrases-quiz', 'calendar-quiz']);
+  var STUDY_MODES = ['vocab', 'grammar', 'phrases', 'calendar'];
   var GUIDE = { vocab: 'tanuki', 'vocab-quiz': 'tanuki', grammar: 'kitsune', 'grammar-quiz': 'kitsune',
-    phrases: 'neko', 'phrases-quiz': 'neko', dictation: 'neko' };
+    phrases: 'neko', 'phrases-quiz': 'neko', calendar: 'tanuki', 'calendar-quiz': 'tanuki', dictation: 'neko' };
   var MODE_JP = { vocab: 'ごい', grammar: 'ぶんぽう', phrases: 'かいわ', 'vocab-quiz': 'ごいクイズ', 'grammar-quiz': 'ぶんぽうクイズ',
-    'phrases-quiz': 'かいわクイズ', dictation: 'ききとり' };
+    'phrases-quiz': 'かいわクイズ', calendar: 'こよみ', 'calendar-quiz': 'こよみクイズ', dictation: 'ききとり' };
 
   // Phrases from 練習C and 会話 live in the Conversation section, not in Vocabulary.
   var PHRASE_GROUPS = ['expressions', 'conversation'];
   function isPhrase(v) { return PHRASE_GROUPS.indexOf(v.group) >= 0; }
-  function words(ch) { return ch.vocab.filter(function (v) { return !isPhrase(v); }); }
+  // Dates, months and last/this/next words live in the Calendar section.
+  function words(ch) { return ch.vocab.filter(function (v) { return !isPhrase(v) && v.group !== 'calendar'; }); }
+  function calendarWords(ch) { return ch.vocab.filter(function (v) { return v.group === 'calendar'; }); }
   function phrases(ch) { return ch.vocab.filter(isPhrase); }
   // The Conversation section: the lesson's 会話 dialogue first (when we have it), then its phrases.
   function convo(ch) { return (ch.dialogue ? [{ dialogue: ch.dialogue }] : []).concat(phrases(ch)); }
@@ -134,6 +137,14 @@
     '教室': 'きょうしつ', '食堂': 'しょくどう', '事務所': 'じむしょ', '会議室': 'かいぎしつ', '受付': 'うけつけ',
     '部屋': 'へや', '手洗': 'てあら', '階段': 'かいだん', '自動販売機': 'じどうはんばいき', '電話': 'でんわ',
     '国': 'くに', '学校': 'がっこう', '靴': 'くつ', '売': 'う', '場': 'ば', '地下': 'ちか', '店員': 'てんいん',
+    '帰': 'かえ', '駅': 'えき', '飛行機': 'ひこうき', '船': 'ふね', '電車': 'でんしゃ', '地下鉄': 'ちかてつ',
+    '新幹線': 'しんかんせん', '自転車': 'じてんしゃ', '歩': 'ある', '友達': 'ともだち', '彼女': 'かのじょ', '彼': 'かれ',
+    '家族': 'かぞく', '一人': 'ひとり', '先週': 'せんしゅう', '今週': 'こんしゅう', '来週': 'らいしゅう',
+    '先月': 'せんげつ', '今月': 'こんげつ', '来月': 'らいげつ', '去年': 'きょねん', '今年': 'ことし', '来年': 'らいねん',
+    '何年': 'なんねん', '何月': 'なんがつ', '何日': 'なんにち', '年': 'ねん', '月': 'がつ', '日': 'にち',
+    '誕生日': 'たんじょうび', '番線': 'ばんせん', '次': 'つぎ', '普通': 'ふつう', '急行': 'きゅうこう', '特急': 'とっきゅう',
+    '甲子園': 'こうしえん', '大阪城': 'おおさかじょう', '京都': 'きょうと', '広島': 'ひろしま',
+    '北海道': 'ほっかいどう', '馬': 'うま', '食': 'た',
     '何階': 'なんがい', '階': 'かい', '円': 'えん', '百': 'ひゃく', '千': 'せん', '万': 'まん', '見': 'み',
     '新大阪': 'しんおおさか', '大阪': 'おおさか', '屋上': 'おくじょう', '遊園地': 'ゆうえんち',
     '催': 'もよお', '物': 'もの', '会場': 'かいじょう', '眼鏡': 'めがね', '用品': 'ようひん', '旅行': 'りょこう',
@@ -157,9 +168,30 @@
       '<rt' + (cls ? ' class="romaji"' : '') + '>' + reading + '</rt></ruby>';
   }
 
+  // Dates have irregular readings, so a number + 日／月 gets one reading over the whole date.
+  var DAY_READINGS = { 1: 'ついたち', 2: 'ふつか', 3: 'みっか', 4: 'よっか', 5: 'いつか', 6: 'むいか', 7: 'なのか',
+    8: 'ようか', 9: 'ここのか', 10: 'とおか', 14: 'じゅうよっか', 20: 'はつか', 24: 'にじゅうよっか' };
+  var DIGIT_KANA = ['', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう'];
+  var MONTH_KANA = ['', 'いち', 'に', 'さん', 'し', 'ご', 'ろく', 'しち', 'はち', 'く', 'じゅう', 'じゅういち', 'じゅうに'];
+  function dayReading(n) {
+    if (DAY_READINGS[n]) return DAY_READINGS[n];
+    var tens = Math.floor(n / 10), unit = n % 10;
+    var unitKana = unit === 4 ? 'よっか' : unit === 7 ? 'しち' : unit === 9 ? 'く' : DIGIT_KANA[unit];
+    return (tens > 1 ? DIGIT_KANA[tens] : '') + (tens ? 'じゅう' : '') + unitKana + (unit === 4 ? '' : 'にち');
+  }
+  // Two passes, so the 2日 in 7月2日 is marked too (a global regex can't reuse the 月 it consumed).
+  function markDates(html) { return markDatesOnce(markDatesOnce(html)); }
+  function markDatesOnce(html) {
+    return html.replace(/(^|[^{0-9０-９])([0-9０-９]{1,2})(日|月)(?![本曜])/g, function (m, pre, num, unit) {
+      var n = Number(num.normalize('NFKC'));
+      if (unit === '月') return n >= 1 && n <= 12 ? pre + '{' + num + unit + '|' + MONTH_KANA[n] + 'がつ}' : m;
+      return n >= 1 && n <= 31 ? pre + '{' + num + unit + '|' + dayReading(n) + '}' : m;
+    });
+  }
+
   // mode 'ja': all readings. mode 'zh': kanji readings only next to kana (see tj).
   function readings(html, mode) {
-    return html.replace(READING_RE, function (m, base, reading, kanji, kata, offset, str) {
+    return markDates(html).replace(READING_RE, function (m, base, reading, kanji, kata, offset, str) {
       if (base) return ruby(base, reading);
       if (kanji) {
         var before = str.charAt(offset - 1), after = str.charAt(offset + m.length);
@@ -299,6 +331,7 @@
     if (!route.mode) return renderChapter(route.ch);
     if (route.mode === 'vocab') return renderVocab(route.ch);
     if (route.mode === 'phrases') return renderPhrases(route.ch);
+    if (route.mode === 'calendar') return renderCalendar(route.ch);
     if (route.mode === 'grammar') return renderGrammar(route.ch);
     return renderQuiz(route.ch, route.mode);
   }
@@ -509,9 +542,9 @@
   function quizLength(ch, mode) {
     if (mode === 'dictation') return Math.min(10, dictationPool(words(ch)).length);
     if (mode === 'grammar-quiz') return Math.min(MAX_QUESTIONS, ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length);
-    var pool = mode === 'phrases-quiz' ? phrases(ch) : words(ch);
+    var pool = mode === 'phrases-quiz' ? phrases(ch) : mode === 'calendar-quiz' ? calendarWords(ch) : words(ch);
     var n = pool.filter(function (v) { return v.group !== 'names' && v.en; }).length;
-    if (mode === 'phrases-quiz') return n >= 4 ? Math.min(10, n) : 0;
+    if (mode === 'phrases-quiz' || mode === 'calendar-quiz') return n >= 4 ? Math.min(10, n) : 0;
     return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
   }
 
@@ -519,13 +552,14 @@
     var counts = {
       vocab: t('itemsCount', words(ch).length),
       phrases: t('itemsCount', convo(ch).length),
+      calendar: t('itemsCount', (ch.calendar || []).length),
       grammar: t('itemsCount', ch.grammar.length),
       'vocab-quiz': t('questionsCount', quizLength(ch, 'vocab-quiz')),
       'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz')),
       dictation: t('questionsCount', quizLength(ch, 'dictation'))
     };
     var best = bestScores();
-    var modes = MODES.map(function (m) {
+    var modes = MODES.filter(function (m) { return m !== 'calendar' || ch.calendar; }).map(function (m) {
       var isQuiz = STUDY_MODES.indexOf(m) < 0;
       return '<a class="mode px' + (isQuiz ? ' mode--quiz' : '') + '" href="#/ch/' + ch.id + '/' + m + '">' +
         SPR.svg(GUIDE[m]) +
@@ -620,6 +654,19 @@
     if (!ch.grammar.length) return emptyScreen(ch, 'grammar');
     if (view.index == null) view.index = 0;
     var g = ch.grammar[view.index];
+    studyFrame(ch, 'grammar', ch.grammar, grammarCard(g), tj(g.explain));
+  }
+
+  // Calendar: table cards for dates, months and last/this/next, laid out like grammar notes.
+  function renderCalendar(ch) {
+    var cards = ch.calendar || [];
+    if (!cards.length) return emptyScreen(ch, 'calendar');
+    if (view.index == null) view.index = 0;
+    var g = cards[view.index];
+    studyFrame(ch, 'calendar', cards, grammarCard(g), tj(g.explain));
+  }
+
+  function grammarCard(g) {
     var examples = (g.examples || []).map(function (ex) {
       return '<div class="example"><div class="example-jp" lang="ja">' + jp(ex.jp) + '</div>' +
         '<div class="example-tr">' + esc(tx(ex)).replace(/\n/g, '<br>') + '</div></div>';
@@ -632,7 +679,7 @@
       (g.table ? grammarTable(g.table) : '') +
       (notes ? '<ul class="notes"><li class="notes-head">' + esc(t('noteLabel')) + '</li>' + notes + '</ul>' : '') +
       (examples ? '<div class="examples"><h3>' + esc(t('examples')) + '</h3>' + examples + '</div>' : '');
-    studyFrame(ch, 'grammar', ch.grammar, card, tj(g.explain));
+    return card;
   }
 
   function grammarTable(tb) {
@@ -809,6 +856,7 @@
   function buildQuiz(ch, mode) {
     if (mode === 'dictation') return generateDictation(words(ch));
     if (mode === 'phrases-quiz') return generateVocabQuiz(phrases(ch), true);
+    if (mode === 'calendar-quiz') return generateVocabQuiz(calendarWords(ch));
     if (mode === 'grammar-quiz') {
       // A quiz with story scenes is played in its authored order.
       var story = ch.grammarQuiz.some(function (q) { return q.type === 'scene'; });
@@ -1172,7 +1220,7 @@
     }
 
     var items = route.mode === 'vocab' ? words(route.ch) : route.mode === 'phrases' ? convo(route.ch)
-      : route.mode === 'grammar' ? route.ch.grammar : null;
+      : route.mode === 'grammar' ? route.ch.grammar : route.mode === 'calendar' ? route.ch.calendar : null;
     if (act === 'prev' && view.index > 0) { view.index--; render(); }
     if (act === 'next' && items) {
       if (view.index < items.length - 1) { view.index++; render(); }
