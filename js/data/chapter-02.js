@@ -53,14 +53,20 @@ MNN.registerChapter({
     { group: 'words', jp: 'そう', en: 'so', zh: '是的，那样' },
 
     // ----- Practice C phrases -----
-    { group: 'expressions', jp: 'あのう', en: 'Er… (used to show hesitation)', zh: '那个……（犹豫时）' },
-    { group: 'expressions', jp: 'えっ', en: 'Oh? What! (on hearing something unexpected)', zh: '诶？！（听到意外的事时）' },
-    { group: 'expressions', jp: 'どうぞ。', en: 'Here you are. (when offering something)', zh: '请。（递东西给别人时）' },
+    { group: 'expressions', jp: 'あのう', en: 'Er… (used to show hesitation)', zh: '那个……（犹豫时）',
+      note: { en: 'Use it to get someone’s attention politely or before saying something a little awkward, like handing over a gift.', zh: '礼貌地引起对方注意，或者在说有点不好意思的话之前用，比如送礼物时。' } },
+    { group: 'expressions', jp: 'えっ', en: 'Oh? What! (on hearing something unexpected)', zh: '诶？！（听到意外的事时）',
+      note: { en: 'A little gasp of surprise when you hear something you didn’t expect.', zh: '听到意外的事时发出的惊讶声。' } },
+    { group: 'expressions', jp: 'どうぞ。', en: 'Here you are. (when offering something)', zh: '请。（递东西给别人时）',
+      note: { en: 'Say it while handing something over or inviting someone to go ahead.', zh: '递东西给别人，或请别人先请时说。' } },
     { group: 'expressions', jp: '［どうも］ ありがとう ［ございます］。', en: 'Thank you [very much].', zh: '（非常）感谢。',
       note: { en: 'The words in [ ] can be left out, but the full version is more polite.', zh: '［ ］里的部分可以省略，但说全了更礼貌。' } },
-    { group: 'expressions', jp: 'そうですか。', en: 'I see.', zh: '是吗。／原来如此。' },
-    { group: 'expressions', jp: 'ちがいます。', kanji: '違います。', en: 'No, it isn’t. / You are wrong.', zh: '不是。／不对。' },
-    { group: 'expressions', jp: 'あ', en: 'Oh! (when you suddenly notice something)', zh: '啊！（突然意识到时）' },
+    { group: 'expressions', jp: 'そうですか。', en: 'I see.', zh: '是吗。／原来如此。',
+      note: { en: 'Say it with a falling tone when you’ve just learned something new.', zh: '刚得知新信息时，用降调说。' } },
+    { group: 'expressions', jp: 'ちがいます。', kanji: '違います。', en: 'No, it isn’t. / You are wrong.', zh: '不是。／不对。',
+      note: { en: 'Use it to say “no, that’s not right”, then give the correct answer.', zh: '用来表示“不对”，然后说出正确答案。' } },
+    { group: 'expressions', jp: 'あ', en: 'Oh! (when you suddenly notice something)', zh: '啊！（突然意识到时）',
+      note: { en: 'A small “oh!” when you suddenly notice or remember something.', zh: '突然注意到或想起什么时轻轻说的“啊！”。' } },
 
     // ----- Conversation phrases -----
     { group: 'conversation', jp: 'これから おせわに なります。', kanji: 'これから お世話に なります。', en: 'Thank you in advance for your kindness.', zh: '今后要承蒙您关照了。',

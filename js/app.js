@@ -10,9 +10,20 @@
   var modalRoot = document.getElementById('modal-root');
 
   var KANJI_NUM = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-  var MODES = ['vocab', 'grammar', 'vocab-quiz', 'grammar-quiz', 'dictation'];
-  var GUIDE = { vocab: 'tanuki', 'vocab-quiz': 'tanuki', grammar: 'kitsune', 'grammar-quiz': 'kitsune', dictation: 'neko' };
-  var MODE_JP = { vocab: 'ごい', grammar: 'ぶんぽう', 'vocab-quiz': 'ごいクイズ', 'grammar-quiz': 'ぶんぽうクイズ', dictation: 'ききとり' };
+  // Modes shown on a lesson's menu. The phrase quiz is reached from the end of Conversation.
+  var MODES = ['vocab', 'grammar', 'phrases', 'vocab-quiz', 'grammar-quiz', 'dictation'];
+  var ALL_MODES = MODES.concat(['phrases-quiz']);
+  var STUDY_MODES = ['vocab', 'grammar', 'phrases'];
+  var GUIDE = { vocab: 'tanuki', 'vocab-quiz': 'tanuki', grammar: 'kitsune', 'grammar-quiz': 'kitsune',
+    phrases: 'neko', 'phrases-quiz': 'neko', dictation: 'neko' };
+  var MODE_JP = { vocab: 'ごい', grammar: 'ぶんぽう', phrases: 'かいわ', 'vocab-quiz': 'ごいクイズ', 'grammar-quiz': 'ぶんぽうクイズ',
+    'phrases-quiz': 'かいわクイズ', dictation: 'ききとり' };
+
+  // Phrases from 練習C and 会話 live in the Conversation section, not in Vocabulary.
+  var PHRASE_GROUPS = ['expressions', 'conversation'];
+  function isPhrase(v) { return PHRASE_GROUPS.indexOf(v.group) >= 0; }
+  function words(ch) { return ch.vocab.filter(function (v) { return !isPhrase(v); }); }
+  function phrases(ch) { return ch.vocab.filter(isPhrase); }
 
   // ---------- Small helpers ----------
 
@@ -125,7 +136,15 @@
     '新大阪': 'しんおおさか', '大阪': 'おおさか', '屋上': 'おくじょう', '遊園地': 'ゆうえんち',
     '催': 'もよお', '物': 'もの', '会場': 'かいじょう', '眼鏡': 'めがね', '用品': 'ようひん', '旅行': 'りょこう',
     '子': 'こ', '服': 'ふく', '文房具': 'ぶんぼうぐ', '家具': 'かぐ', '食器': 'しょっき', '電化製品': 'でんかせいひん',
-    '紳士服': 'しんしふく', '婦人服': 'ふじんふく', '化粧品': 'けしょうひん', '食品': 'しょくひん', '駐車場': 'ちゅうしゃじょう'
+    '紳士服': 'しんしふく', '婦人服': 'ふじんふく', '化粧品': 'けしょうひん', '食品': 'しょくひん', '駐車場': 'ちゅうしゃじょう',
+    '起': 'お', '寝': 'ね', '働': 'はたら', '休': 'やす', '勉強': 'べんきょう', '終': 'お',
+    '郵便局': 'ゆうびんきょく', '図書館': 'としょかん', '美術館': 'びじゅつかん', '今晩': 'こんばん', '今': 'いま',
+    '何時': 'なんじ', '何分': 'なんぷん', '時間': 'じかん', '時': 'じ', '分': 'ふん', '半': 'はん',
+    '午前': 'ごぜん', '午後': 'ごご', '朝': 'あさ', '昼休': 'ひるやす', '昼': 'ひる', '晩': 'ばん', '夜': 'よる',
+    '試験': 'しけん', '会議': 'かいぎ', '映画': 'えいが', '毎朝': 'まいあさ', '毎晩': 'まいばん', '毎日': 'まいにち',
+    '月曜日': 'げつようび', '火曜日': 'かようび', '水曜日': 'すいようび', '木曜日': 'もくようび', '金曜日': 'きんようび',
+    '土曜日': 'どようび', '日曜日': 'にちようび', '何曜日': 'なんようび', '曜日': 'ようび',
+    '大変': 'たいへん', '番号': 'ばんごう', '何番': 'なんばん', '北京': 'ぺきん', '東京': 'とうきょう', '奈良': 'なら'
   };
   var KANJI_KEYS = Object.keys(KANJI_READINGS).sort(function (a, b) { return b.length - a.length; });
   var READING_RE = new RegExp('\\{([^|}]+)\\|([^}]+)\\}|(' + KANJI_KEYS.join('|') + ')|([\\u30A1-\\u30FA\\u30FC]+)', 'g');
@@ -143,6 +162,12 @@
       if (kanji) {
         var before = str.charAt(offset - 1), after = str.charAt(offset + m.length);
         if (mode === 'zh' && !KANA.test(before) && !KANA.test(after)) return m;
+        if (m === '分') {
+          var digits = str.slice(0, offset).match(/[0-9０-９]+$/);
+          var last = digits ? digits[0].normalize('NFKC') : '';
+          var pun = /[13468]$|0$/.test(last);
+          return ruby(m, pun ? 'ぷん' : 'ふん');
+        }
         if (m === '人') {
           // After a country name (katakana, 国, 日本) or 〜 it's the suffix じん.
           var jin = /[ァ-ヺー〜～国]/.test(before) || str.slice(offset - 2, offset) === '日本';
@@ -242,7 +267,7 @@
   function parseRoute() {
     var parts = currentPath.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (parts[0] === 'ch' && DATA.chapters[parts[1]]) {
-      var mode = MODES.indexOf(parts[2]) >= 0 ? parts[2] : null;
+      var mode = ALL_MODES.indexOf(parts[2]) >= 0 ? parts[2] : null;
       return { ch: DATA.chapters[parts[1]], mode: mode };
     }
     return {};
@@ -271,6 +296,7 @@
     if (!route.ch) return renderHome();
     if (!route.mode) return renderChapter(route.ch);
     if (route.mode === 'vocab') return renderVocab(route.ch);
+    if (route.mode === 'phrases') return renderPhrases(route.ch);
     if (route.mode === 'grammar') return renderGrammar(route.ch);
     return renderQuiz(route.ch, route.mode);
   }
@@ -479,15 +505,18 @@
   // ---------- Chapter menu ----------
 
   function quizLength(ch, mode) {
-    if (mode === 'dictation') return Math.min(10, dictationPool(ch.vocab).length);
+    if (mode === 'dictation') return Math.min(10, dictationPool(words(ch)).length);
     if (mode === 'grammar-quiz') return Math.min(MAX_QUESTIONS, ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length);
-    var n = ch.vocab.filter(function (v) { return v.group !== 'names' && v.en; }).length;
+    var pool = mode === 'phrases-quiz' ? phrases(ch) : words(ch);
+    var n = pool.filter(function (v) { return v.group !== 'names' && v.en; }).length;
+    if (mode === 'phrases-quiz') return n >= 4 ? Math.min(10, n) : 0;
     return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
   }
 
   function renderChapter(ch) {
     var counts = {
-      vocab: t('itemsCount', ch.vocab.length),
+      vocab: t('itemsCount', words(ch).length),
+      phrases: t('itemsCount', phrases(ch).length),
       grammar: t('itemsCount', ch.grammar.length),
       'vocab-quiz': t('questionsCount', quizLength(ch, 'vocab-quiz')),
       'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz')),
@@ -495,7 +524,7 @@
     };
     var best = bestScores();
     var modes = MODES.map(function (m) {
-      var isQuiz = m !== 'vocab' && m !== 'grammar';
+      var isQuiz = STUDY_MODES.indexOf(m) < 0;
       return '<a class="mode px' + (isQuiz ? ' mode--quiz' : '') + '" href="#/ch/' + ch.id + '/' + m + '">' +
         SPR.svg(GUIDE[m]) +
         '<span class="mode-text"><span class="mode-jp">' + MODE_JP[m] + '</span>' +
@@ -540,9 +569,10 @@
   }
 
   function renderVocab(ch) {
-    if (!ch.vocab.length) return emptyScreen(ch, 'vocab');
+    var list = words(ch);
+    if (!list.length) return emptyScreen(ch, 'vocab');
     if (view.index == null) view.index = 0;
-    var v = ch.vocab[view.index];
+    var v = list[view.index];
     var card = (v.group ? '<div class="chip">' + esc(t('groups')[v.group] || v.group) + '</div>' : '') +
       '<div class="word-jp" lang="ja">' + jp(v.jp) + '</div>' +
       (v.kanji ? '<div class="word-kanji" lang="ja">' + jp(v.kanji) + '</div>' : '') +
@@ -550,7 +580,24 @@
       '<div class="word-meaning">' + tj({ en: v.en, zh: v.zh }) + '</div>' +
       (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
     var bubble = v.note ? tj(v.note) : esc(view.index === 0 ? t('vocabIntro') : t('vocabTip'));
-    studyFrame(ch, 'vocab', ch.vocab, card, bubble);
+    studyFrame(ch, 'vocab', list, card, bubble);
+  }
+
+  // Conversation: the lesson's set phrases, each with when to use it.
+  function renderPhrases(ch) {
+    var list = phrases(ch);
+    if (!list.length) return emptyScreen(ch, 'phrases');
+    if (view.index == null) view.index = 0;
+    var v = list[view.index];
+    var card = (v.group ? '<div class="chip">' + esc(t('groups')[v.group] || v.group) + '</div>' : '') +
+      '<div class="word-jp phrase-jp" lang="ja">' + jp(v.jp) + '</div>' +
+      (v.kanji ? '<div class="word-kanji" lang="ja">' + jp(v.kanji) + '</div>' : '') +
+      '<div class="word-divider"></div>' +
+      '<div class="word-meaning">' + tj({ en: v.en, zh: v.zh }) + '</div>' +
+      (v.note ? '<div class="tip phrase-when"><span class="tip-head">' + esc(t('whenToUse')) + '</span>' + tj(v.note) + '</div>' : '') +
+      (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
+    var bubble = esc(view.index === 0 ? t('phrasesIntro') : t('phrasesTip'));
+    studyFrame(ch, 'phrases', list, card, bubble);
   }
 
   function renderGrammar(ch) {
@@ -574,7 +621,7 @@
 
   function grammarTable(tb) {
     return '<div class="g-table-wrap"><table class="g-table"><thead><tr><th></th>' +
-      tb.head.map(function (h) { return '<th lang="ja">' + jp(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      tb.head.map(function (h) { return '<th>' + tj(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       tb.rows.map(function (r) {
         return '<tr><th scope="row">' + esc(tx(r.label)) + '</th>' +
           r.cells.map(function (c) { return '<td lang="ja">' + jp(c) + '</td>'; }).join('') + '</tr>';
@@ -667,7 +714,8 @@
   }
 
   // When a chapter has no authored vocab quiz, build one from its word list.
-  function generateVocabQuiz(all) {
+  function generateVocabQuiz(all, isPhrases) {
+    var kMeaning = isPhrases ? 'pqMeaning' : 'vqMeaning', kWord = isPhrases ? 'pqWord' : 'vqWord';
     var vocab = all.filter(function (v) { return v.group !== 'names' && v.en; });
     if (vocab.length < 4) return [];
     return shuffle(vocab).slice(0, 10).map(function (item, n) {
@@ -680,7 +728,7 @@
         // Japanese -> meaning
         return {
           type: 'choice',
-          prompt: both('vqMeaning'),
+          prompt: both(kMeaning),
           jp: wordLabel(item),
           explanation: both('vqExplain', wordLabel(item), meaning),
           choices: shuffle([{ value: meaning, correct: true }].concat(others.map(function (o) {
@@ -691,7 +739,7 @@
       // Meaning -> Japanese
       return {
         type: 'choice',
-        prompt: both('vqWord', meaning),
+        prompt: both(kWord, meaning),
         jp: '',
         explanation: both('vqExplain', wordLabel(item), meaning),
         choices: shuffle([{ value: wordLabel(item), correct: true }].concat(others.map(function (o) {
@@ -743,14 +791,15 @@
   }
 
   function buildQuiz(ch, mode) {
-    if (mode === 'dictation') return generateDictation(ch.vocab);
+    if (mode === 'dictation') return generateDictation(words(ch));
+    if (mode === 'phrases-quiz') return generateVocabQuiz(phrases(ch), true);
     if (mode === 'grammar-quiz') {
       // A quiz with story scenes is played in its authored order.
       var story = ch.grammarQuiz.some(function (q) { return q.type === 'scene'; });
       return capQuestions(story ? ch.grammarQuiz : shuffle(ch.grammarQuiz)).map(normalizeQuestion);
     }
     if (ch.vocabQuiz.length) return capQuestions(shuffle(ch.vocabQuiz)).map(normalizeQuestion);
-    return generateVocabQuiz(ch.vocab);
+    return generateVocabQuiz(words(ch));
   }
 
   function normalizeAnswer(s) {
@@ -1106,7 +1155,8 @@
       return render();
     }
 
-    var items = route.mode === 'vocab' ? route.ch.vocab : route.mode === 'grammar' ? route.ch.grammar : null;
+    var items = route.mode === 'vocab' ? words(route.ch) : route.mode === 'phrases' ? phrases(route.ch)
+      : route.mode === 'grammar' ? route.ch.grammar : null;
     if (act === 'prev' && view.index > 0) { view.index--; render(); }
     if (act === 'next' && items) {
       if (view.index < items.length - 1) { view.index++; render(); }
@@ -1123,7 +1173,7 @@
       return;
     }
     if (act === 'speak') {
-      var v = route.ch.vocab[view.index];
+      var v = (route.mode === 'phrases' ? phrases(route.ch) : words(route.ch))[view.index];
       speak(v.kanji || v.jp);
     }
     if (act === 'choose' && view.quiz && !view.quiz.answered) {

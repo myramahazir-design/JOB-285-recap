@@ -55,13 +55,16 @@ MNN.registerChapter({
     // ----- Practice C phrases -----
     { group: 'expressions', jp: 'はじめまして。', kanji: '初めまして。', en: 'How do you do?', zh: '初次见面。',
       note: { en: 'Literally “I am meeting you for the first time.” Usually the first thing you say when introducing yourself.', zh: '字面意思是“第一次见面”。通常在自我介绍的开头说。' } },
-    { group: 'expressions', jp: '〜から きました。', kanji: '〜から 来ました。', en: 'I’m from 〜 (country).', zh: '我来自～（国家）。' },
+    { group: 'expressions', jp: '〜から きました。', kanji: '〜から 来ました。', en: 'I’m from 〜 (country).', zh: '我来自～（国家）。',
+      note: { en: 'Use it right after your name in a self-introduction: アメリカから 来ました。', zh: '自我介绍时紧接在名字后面说：アメリカから 来ました。' } },
     { group: 'expressions', jp: '［どうぞ］ よろしく ［おねがいします］。', kanji: '［どうぞ］ よろしく ［お願いします］。', en: 'Pleased to meet you.', zh: '请多关照。',
       note: { en: 'Literally “Please be nice to me.” Usually said at the end of a self-introduction. The words in [ ] can be left out.', zh: '字面意思是“请多多关照我”。通常在自我介绍的最后说。［ ］里的部分可以省略。' } },
     { group: 'expressions', jp: 'しつれいですが', kanji: '失礼ですが', en: 'Excuse me, but…', zh: '不好意思，请问……',
       note: { en: 'Used when asking someone for personal information, such as their name or address.', zh: '询问对方姓名、住址等个人信息时使用。' } },
-    { group: 'expressions', jp: 'おなまえは？', kanji: 'お名前は？', en: 'May I have your name?', zh: '请问您叫什么名字？' },
-    { group: 'expressions', jp: 'こちらは 〜さんです。', en: 'This is Mr./Ms. 〜.', zh: '这位是～先生／女士。' },
+    { group: 'expressions', jp: 'おなまえは？', kanji: 'お名前は？', en: 'May I have your name?', zh: '请问您叫什么名字？',
+      note: { en: 'A polite way to ask someone’s name, often after 失礼ですが.', zh: '礼貌地问对方名字，常接在失礼ですが后面。' } },
+    { group: 'expressions', jp: 'こちらは 〜さんです。', en: 'This is Mr./Ms. 〜.', zh: '这位是～先生／女士。',
+      note: { en: 'Use it to introduce one person to another. Always add さん to their name.', zh: '把一个人介绍给另一个人时用。名字后面一定要加さん。' } },
 
     // ----- Countries -----
     { group: 'countries', jp: 'アメリカ', en: 'U.S.A.', zh: '美国' },

@@ -33,14 +33,16 @@ window.MNN_STRINGS = {
       grammar: 'Grammar',
       'vocab-quiz': 'Vocab Quiz',
       'grammar-quiz': 'Grammar Quiz',
-      dictation: 'Dictation'
+      dictation: 'Dictation',
+      phrases: 'Conversation'
     },
     modeDesc: {
       vocab: 'Review the words',
       grammar: 'Review the patterns',
       'vocab-quiz': 'Test your words',
       'grammar-quiz': 'Story practice from the textbook',
-      dictation: 'Listen and write the word'
+      dictation: 'Listen and write the word',
+      phrases: 'Set phrases and when to use them'
     },
     itemsCount: function (n) { return n + (n === 1 ? ' item' : ' items'); },
     questionsCount: function (n) { return n + (n === 1 ? ' question' : ' questions'); },
@@ -55,6 +57,9 @@ window.MNN_STRINGS = {
     chapterGreeting: 'What would you like to practise, {name}?',
     vocabIntro: '{name}, let’s go through the words together. Tap the speaker to hear each one!',
     vocabTip: 'Say it out loud a few times before moving on.',
+    phrasesIntro: 'These are the set phrases from this lesson’s conversations. Learn when to say each one, {name}!',
+    phrasesTip: 'Try saying it as if you were really in that situation.',
+    whenToUse: 'When to use it',
     emptyContent: 'This part of the lesson hasn’t been added yet. Check back soon!',
 
     prev: 'Back',
@@ -104,6 +109,8 @@ window.MNN_STRINGS = {
 
     // Auto-generated vocabulary questions
     vqMeaning: 'What does this word mean?',
+    pqMeaning: 'What does this phrase mean?',
+    pqWord: function (m) { return 'Which phrase means “' + m + '”?'; },
     vqWord: function (m) { return 'Which word means “' + m + '”?'; },
     vqExplain: function (jp, m) { return '「' + jp + '」 means “' + m + '”.'; },
     vqWhyMeaning: function (m, jp) { return '“' + m + '” is 「' + jp + '」, a different word.'; },
@@ -140,14 +147,16 @@ window.MNN_STRINGS = {
       grammar: '语法',
       'vocab-quiz': '词汇测验',
       'grammar-quiz': '语法测验',
-      dictation: '听写'
+      dictation: '听写',
+      phrases: '会话'
     },
     modeDesc: {
       vocab: '复习单词',
       grammar: '复习句型',
       'vocab-quiz': '测试单词',
       'grammar-quiz': '课本练习·故事模式',
-      dictation: '听发音，写单词'
+      dictation: '听发音，写单词',
+      phrases: '常用语和使用场合'
     },
     itemsCount: function (n) { return n + ' 项'; },
     questionsCount: function (n) { return n + ' 题'; },
@@ -162,6 +171,9 @@ window.MNN_STRINGS = {
     chapterGreeting: '{name}，想练习什么呢？',
     vocabIntro: '{name}，我们一起来复习单词吧。点喇叭可以听发音哦！',
     vocabTip: '继续之前，先大声念几遍吧。',
+    phrasesIntro: '{name}，这些是本课会话中的常用语。来学学每句话该在什么时候说吧！',
+    phrasesTip: '想象自己真的在那个场景里，说出来试试。',
+    whenToUse: '使用场合',
     emptyContent: '这部分内容还没有添加，请稍后再来！',
 
     prev: '上一个',
@@ -210,6 +222,8 @@ window.MNN_STRINGS = {
     reviewLesson: '复习本课',
 
     vqMeaning: '这个词是什么意思？',
+    pqMeaning: '这句话是什么意思？',
+    pqWord: function (m) { return '哪句话的意思是“' + m + '”？'; },
     vqWord: function (m) { return '哪个词的意思是“' + m + '”？'; },
     vqExplain: function (jp, m) { return '「' + jp + '」的意思是“' + m + '”。'; },
     vqWhyMeaning: function (m, jp) { return '“' + m + '”是「' + jp + '」，是另一个词。'; },

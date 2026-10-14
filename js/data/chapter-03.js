@@ -48,15 +48,20 @@ MNN.registerChapter({
       note: { en: 'Japanese counts big numbers in units of 10,000 (万), just like Chinese. 10,000 = いちまん.', zh: '日语和汉语一样以“万”为单位数大数字。10,000＝いちまん。' } },
 
     // ----- Practice C phrases -----
-    { group: 'expressions', jp: 'すみません。', en: 'Excuse me.', zh: '不好意思。／劳驾。' },
-    { group: 'expressions', jp: 'どうも。', en: 'Thanks.', zh: '谢谢。' },
+    { group: 'expressions', jp: 'すみません。', en: 'Excuse me.', zh: '不好意思。／劳驾。',
+      note: { en: 'Use it to get attention, for example when asking a shop assistant or a stranger something.', zh: '想引起别人注意时用，比如问店员或陌生人问题时。' } },
+    { group: 'expressions', jp: 'どうも。', en: 'Thanks.', zh: '谢谢。',
+      note: { en: 'A short, casual thank-you, for example after someone gives you directions.', zh: '简短随意的“谢谢”，比如别人给你指路之后。' } },
 
     // ----- Conversation phrases -----
     { group: 'conversation', jp: 'いらっしゃいませ。', en: 'Welcome. / May I help you?', zh: '欢迎光临。',
       note: { en: 'Said by shop staff to a customer or guest coming in.', zh: '店员对进店的顾客或客人说的话。' } },
-    { group: 'conversation', jp: '［〜を］ みせて ください。', kanji: '［〜を］ 見せて ください。', en: 'Please show me [〜].', zh: '请给我看看［～］。' },
-    { group: 'conversation', jp: 'じゃ', en: 'well, then, in that case', zh: '那么，那样的话' },
-    { group: 'conversation', jp: '［〜を］ ください。', en: 'Give me [〜], please.', zh: '请给我［～］。' },
+    { group: 'conversation', jp: '［〜を］ みせて ください。', kanji: '［〜を］ 見せて ください。', en: 'Please show me [〜].', zh: '请给我看看［～］。',
+      note: { en: 'Ask a shop assistant to show you an item before you decide.', zh: '决定之前请店员拿东西给你看。' } },
+    { group: 'conversation', jp: 'じゃ', en: 'well, then, in that case', zh: '那么，那样的话',
+      note: { en: 'Use it when you’ve made a decision: じゃ、これを ください。', zh: '做出决定时用：じゃ、これを ください。' } },
+    { group: 'conversation', jp: '［〜を］ ください。', en: 'Give me [〜], please.', zh: '请给我［～］。',
+      note: { en: 'Use it in a shop to say what you’d like to buy: これを ください。', zh: '在商店里说要买什么：これを ください。' } },
 
     // ----- Countries and places -----
     { group: 'countries', jp: 'イタリア', en: 'Italy', zh: '意大利' },
