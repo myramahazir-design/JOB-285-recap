@@ -72,14 +72,15 @@ button { font: inherit; color: inherit; }
 /* ---------- Top bar ---------- */
 .topbar {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 60; /* stays above the pop-up so the language toggle always works */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 16px;
-  padding-top: max(10px, env(safe-area-inset-top));
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   background: var(--indigo);
   color: #fff;
   border-bottom: var(--px) solid var(--ink);
@@ -123,7 +124,9 @@ main {
   width: 100%;
   max-width: 760px;
   margin: 0 auto;
-  padding: 20px 16px 32px;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   outline: none;
 }
 

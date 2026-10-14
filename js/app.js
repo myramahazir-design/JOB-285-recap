@@ -118,11 +118,14 @@
   // #/ch/3                chapter menu
   // #/ch/3/vocab          vocab | grammar | vocab-quiz | grammar-quiz
 
+  // Navigation is kept in memory and mirrored to the URL hash when the browser allows it,
+  // so the app also works where the page URL can't be changed (e.g. inside an embed).
+  var currentPath = location.hash;
   var route = {};
   var view = {}; // per-screen state (card index, quiz progress); reset on navigation
 
   function parseRoute() {
-    var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+    var parts = currentPath.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (parts[0] === 'ch' && DATA.chapters[parts[1]]) {
       var mode = MODES.indexOf(parts[2]) >= 0 ? parts[2] : null;
       return { ch: DATA.chapters[parts[1]], mode: mode };
@@ -570,6 +573,23 @@
   if (canSpeak) window.speechSynthesis.getVoices();
 
   document.getElementById('street').innerHTML = SPR.scene();
-  window.addEventListener('hashchange', onRouteChange);
+  function navigate(path) {
+    if (path === currentPath) return onRouteChange();
+    currentPath = path;
+    try { history.pushState(null, '', path); } catch (e) { /* URL can't be changed here */ }
+    onRouteChange();
+  }
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href^="#/"]');
+    if (!link) return;
+    e.preventDefault();
+    navigate(link.getAttribute('href'));
+  }, true);
+
+  window.addEventListener('popstate', function () {
+    currentPath = location.hash;
+    onRouteChange();
+  });
   onRouteChange();
 })();
