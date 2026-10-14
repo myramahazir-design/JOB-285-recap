@@ -60,6 +60,9 @@ window.MNN_STRINGS = {
     phrasesIntro: 'These are the set phrases from this lesson’s conversations. Learn when to say each one, {name}!',
     phrasesTip: 'Try saying it as if you were really in that situation.',
     whenToUse: 'When to use it',
+    dialogue: 'Lesson conversation · 会話',
+    dialogueIntro: 'First, read this lesson’s conversation, {name}. Tap Listen to hear it. Then we’ll learn its phrases one by one.',
+    showMeaning: 'Show the meaning',
     emptyContent: 'This part of the lesson hasn’t been added yet. Check back soon!',
 
     prev: 'Back',
@@ -174,6 +177,9 @@ window.MNN_STRINGS = {
     phrasesIntro: '{name}，这些是本课会话中的常用语。来学学每句话该在什么时候说吧！',
     phrasesTip: '想象自己真的在那个场景里，说出来试试。',
     whenToUse: '使用场合',
+    dialogue: '本课会话 · 会話',
+    dialogueIntro: '{name}，先读一读本课的会话吧。点“听”可以听录音。然后我们逐句学习里面的常用语。',
+    showMeaning: '显示意思',
     emptyContent: '这部分内容还没有添加，请稍后再来！',
 
     prev: '上一个',

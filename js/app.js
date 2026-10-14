@@ -24,6 +24,8 @@
   function isPhrase(v) { return PHRASE_GROUPS.indexOf(v.group) >= 0; }
   function words(ch) { return ch.vocab.filter(function (v) { return !isPhrase(v); }); }
   function phrases(ch) { return ch.vocab.filter(isPhrase); }
+  // The Conversation section: the lesson's 会話 dialogue first (when we have it), then its phrases.
+  function convo(ch) { return (ch.dialogue ? [{ dialogue: ch.dialogue }] : []).concat(phrases(ch)); }
 
   // ---------- Small helpers ----------
 
@@ -144,7 +146,7 @@
     '試験': 'しけん', '会議': 'かいぎ', '映画': 'えいが', '毎朝': 'まいあさ', '毎晩': 'まいばん', '毎日': 'まいにち',
     '月曜日': 'げつようび', '火曜日': 'かようび', '水曜日': 'すいようび', '木曜日': 'もくようび', '金曜日': 'きんようび',
     '土曜日': 'どようび', '日曜日': 'にちようび', '何曜日': 'なんようび', '曜日': 'ようび',
-    '大変': 'たいへん', '番号': 'ばんごう', '何番': 'なんばん', '北京': 'ぺきん', '東京': 'とうきょう', '奈良': 'なら'
+    '大変': 'たいへん', '番号': 'ばんごう', '何番': 'なんばん', '北京': 'ぺきん', '店': 'みせ', '病院': 'びょういん', '東京': 'とうきょう', '奈良': 'なら'
   };
   var KANJI_KEYS = Object.keys(KANJI_READINGS).sort(function (a, b) { return b.length - a.length; });
   var READING_RE = new RegExp('\\{([^|}]+)\\|([^}]+)\\}|(' + KANJI_KEYS.join('|') + ')|([\\u30A1-\\u30FA\\u30FC]+)', 'g');
@@ -516,7 +518,7 @@
   function renderChapter(ch) {
     var counts = {
       vocab: t('itemsCount', words(ch).length),
-      phrases: t('itemsCount', phrases(ch).length),
+      phrases: t('itemsCount', convo(ch).length),
       grammar: t('itemsCount', ch.grammar.length),
       'vocab-quiz': t('questionsCount', quizLength(ch, 'vocab-quiz')),
       'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz')),
@@ -585,10 +587,11 @@
 
   // Conversation: the lesson's set phrases, each with when to use it.
   function renderPhrases(ch) {
-    var list = phrases(ch);
+    var list = convo(ch);
     if (!list.length) return emptyScreen(ch, 'phrases');
     if (view.index == null) view.index = 0;
     var v = list[view.index];
+    if (v.dialogue) return studyFrame(ch, 'phrases', list, renderDialogue(v.dialogue), esc(t('dialogueIntro')));
     var card = (v.group ? '<div class="chip">' + esc(t('groups')[v.group] || v.group) + '</div>' : '') +
       '<div class="word-jp phrase-jp" lang="ja">' + jp(v.jp) + '</div>' +
       (v.kanji ? '<div class="word-kanji" lang="ja">' + jp(v.kanji) + '</div>' : '') +
@@ -596,8 +599,21 @@
       '<div class="word-meaning">' + tj({ en: v.en, zh: v.zh }) + '</div>' +
       (v.note ? '<div class="tip phrase-when"><span class="tip-head">' + esc(t('whenToUse')) + '</span>' + tj(v.note) + '</div>' : '') +
       (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
-    var bubble = esc(view.index === 0 ? t('phrasesIntro') : t('phrasesTip'));
+    var first = view.index === (ch.dialogue ? 1 : 0);
+    var bubble = esc(first ? t('phrasesIntro') : t('phrasesTip'));
     studyFrame(ch, 'phrases', list, card, bubble);
+  }
+
+  // The 会話 as chat bubbles, split into its scenes, with the meaning tucked away until asked for.
+  function renderDialogue(d) {
+    var lines = [].concat.apply([], d.parts);
+    return '<div class="chip">' + jp(esc(t('dialogue'))) + '</div>' +
+      '<div class="dialogue-title" lang="ja">' + jp(d.title) + '</div>' +
+      d.parts.map(function (part) { return renderTalk(part); }).join('<div class="dialogue-break"></div>') +
+      '<details class="dialogue-meaning"><summary>' + esc(t('showMeaning')) + '</summary><ol>' +
+      lines.map(function (l) { return '<li><span lang="ja">' + jp(l.who) + '</span>: ' + tj({ en: l.en, zh: l.zh }) + '</li>'; }).join('') +
+      '</ol></details>' +
+      (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
   }
 
   function renderGrammar(ch) {
@@ -1155,7 +1171,7 @@
       return render();
     }
 
-    var items = route.mode === 'vocab' ? words(route.ch) : route.mode === 'phrases' ? phrases(route.ch)
+    var items = route.mode === 'vocab' ? words(route.ch) : route.mode === 'phrases' ? convo(route.ch)
       : route.mode === 'grammar' ? route.ch.grammar : null;
     if (act === 'prev' && view.index > 0) { view.index--; render(); }
     if (act === 'next' && items) {
@@ -1173,8 +1189,9 @@
       return;
     }
     if (act === 'speak') {
-      var v = (route.mode === 'phrases' ? phrases(route.ch) : words(route.ch))[view.index];
-      speak(v.kanji || v.jp);
+      var v = (route.mode === 'phrases' ? convo(route.ch) : words(route.ch))[view.index];
+      if (v.dialogue) speak([].concat.apply([], v.dialogue.parts).map(function (l) { return l.jp; }).join('　'));
+      else speak(v.kanji || v.jp);
     }
     if (act === 'choose' && view.quiz && !view.quiz.answered) {
       answerQuestion(null, Number(el.getAttribute('data-idx')));

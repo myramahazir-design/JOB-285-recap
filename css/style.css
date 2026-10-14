@@ -752,6 +752,11 @@ h1, h2, h3 { font-weight: 400; margin: 0; line-height: 1.3; }
 .talk-line--you .talk-bubble { background: var(--matcha-soft); }
 .talk-who { display: block; font-size: 11px; color: var(--ink-soft); }
 .talk-text { font-size: 19px; overflow-wrap: anywhere; }
+.dialogue-title { font-size: 22px; font-weight: 700; margin: 6px 0 14px; }
+.dialogue-break { border-top: 2px dashed var(--matcha-soft); margin: 4px 0 16px; }
+.dialogue-meaning { text-align: left; margin: 4px 0 14px; font-size: 15px; }
+.dialogue-meaning summary { cursor: pointer; color: var(--primary); font-weight: 700; padding: 6px 0; }
+.dialogue-meaning ol { margin: 6px 0 0; padding-left: 22px; line-height: 1.7; }
 
 /* ---------- Name cards (meishi) ---------- */
 .namecard {
