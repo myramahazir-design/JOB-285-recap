@@ -91,7 +91,7 @@
 
   // Adds readings above escaped text: {漢字|かな} becomes furigana, and every katakana
   // word gets its romaji in small type (ミラー -> mirā).
-  var KATAKANA = /\{([^|}]+)\|([^}]+)\}|[\u30A1-\u30FA\u30FC]+(?:・[\u30A1-\u30FA\u30FC]+)*/g;
+  var KATAKANA = /\{([^|}]+)\|([^}]+)\}|[\u30A1-\u30FA\u30FC]+/g;
   function readings(html) {
     return html.replace(KATAKANA, function (m, base, reading) {
       if (base) return '<ruby>' + base + '<rt>' + reading + '</rt></ruby>';
@@ -545,7 +545,7 @@
 
     var bubble = jp(tx(q.prompt));
     if (a && a.correct) {
-      bubble = '<strong>' + esc(a.streak >= 3 ? t('streakLine', a.streak) : t('correctLines')[a.cheer]) + '</strong>';
+      bubble = '<strong>' + esc(a.streak >= 3 ? t('streakLine', a.streak) : P(t('correctLines')[a.cheer])) + '</strong>';
     }
 
     var fill = a ? fillText(q) : null;
@@ -571,7 +571,7 @@
           (picked.length === q.tiles.length ? '' : ' disabled') + '>' + esc(t('check')) + '</button></div>');
     } else if (q.type === 'choice') {
       // Sentence-length options get one per row so they stay readable on phones.
-      var wide = q.choices.some(function (c) { return tx(c.value).length > 9; });
+      var wide = q.choices.some(function (c) { return tx(c.value).length > 6; });
       body += '<div class="choices' + (wide ? ' choices--wide' : '') + '">' + q.choices.map(function (c, idx) {
         var cls = '';
         if (a) {
