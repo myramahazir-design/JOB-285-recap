@@ -4,6 +4,7 @@
   var STR = window.MNN_STRINGS;
   var SPR = window.MNN_SPRITES;
   var DATA = window.MNN;
+  var ROMAJI = window.MNN_ROMAJI;
 
   var app = document.getElementById('app');
   var modalRoot = document.getElementById('modal-root');
@@ -80,11 +81,22 @@
   function jp(s, fill) {
     var fills = fill == null ? null : String(fill).split(' … ');
     var n = 0;
-    var html = esc(P(s)).replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\n/g, '<br>');
+    var html = readings(esc(P(s))).replace(/\n/g, '<br>');
     return html.replace(/[（(]\s*[　 ]?\s*[）)]/g, function () {
       return fills
-        ? '<span class="blank blank--filled">' + esc(fills[Math.min(n++, fills.length - 1)]) + '</span>'
+        ? '<span class="blank blank--filled">' + readings(esc(fills[Math.min(n++, fills.length - 1)])) + '</span>'
         : '<span class="blank">（　）</span>';
+    });
+  }
+
+  // Adds readings above escaped text: {漢字|かな} becomes furigana, and every katakana
+  // word gets its romaji in small type (ミラー -> mirā).
+  var KATAKANA = /\{([^|}]+)\|([^}]+)\}|[\u30A1-\u30FA\u30FC]+(?:・[\u30A1-\u30FA\u30FC]+)*/g;
+  function readings(html) {
+    return html.replace(KATAKANA, function (m, base, reading) {
+      if (base) return '<ruby>' + base + '<rt>' + reading + '</rt></ruby>';
+      if (/^ー+$/.test(m)) return m;
+      return '<ruby class="kata">' + m + '<rt class="romaji">' + ROMAJI(m) + '</rt></ruby>';
     });
   }
 
@@ -208,7 +220,7 @@
       return '<a class="sign sign--' + (ch.id % 4) + '" href="#/ch/' + ch.id + '">' +
         '<span class="sign-kanji">第' + kanjiNum(ch.id) + '課</span>' +
         '<span class="sign-num">' + esc(t('lessonN', ch.id)) + '</span>' +
-        '<span class="sign-sub">' + esc(ch.title.jp) + '</span>' +
+        '<span class="sign-sub" lang="ja">' + jp(ch.title.jp) + '</span>' +
         (hasContent(ch) ? '' : '<span class="badge badge--soft">' + esc(t('comingSoon')) + '</span>') +
         (chapterStars(ch) ? '<span class="sign-stars">★ ' + chapterStars(ch) + ' / 6</span>' : '') +
         '</a>';
@@ -253,7 +265,7 @@
     app.innerHTML = '<section class="screen">' +
       '<div class="toprow">' + backLink('#/', t('allLessons')) + '</div>' +
       '<div class="chapter-head"><div class="kanji">第' + kanjiNum(ch.id) + '課</div>' +
-      '<div class="title-jp">' + esc(ch.title.jp) + '</div>' +
+      '<div class="title-jp" lang="ja">' + jp(ch.title.jp) + '</div>' +
       '<div class="title-tr">' + esc(tx(ch.title)) + '</div></div>' +
       guide('neko', esc(t('chapterGreeting'))) +
       '<div class="mode-grid">' + modes + '</div>' +
@@ -289,11 +301,11 @@
     var v = ch.vocab[view.index];
     var card = (v.group ? '<div class="chip">' + esc(t('groups')[v.group] || v.group) + '</div>' : '') +
       '<div class="word-jp" lang="ja">' + jp(v.jp) + '</div>' +
-      (v.kanji ? '<div class="word-kanji" lang="ja">' + esc(v.kanji) + '</div>' : '') +
+      (v.kanji ? '<div class="word-kanji" lang="ja">' + jp(v.kanji) + '</div>' : '') +
       '<div class="word-divider"></div>' +
-      '<div class="word-meaning">' + esc(tx(v)) + '</div>' +
+      '<div class="word-meaning">' + jp(tx(v)) + '</div>' +
       (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
-    var bubble = v.note ? esc(tx(v.note)) : esc(view.index === 0 ? t('vocabIntro') : t('vocabTip'));
+    var bubble = v.note ? jp(tx(v.note)) : esc(view.index === 0 ? t('vocabIntro') : t('vocabTip'));
     studyFrame(ch, 'vocab', ch.vocab, card, bubble);
   }
 
@@ -312,7 +324,7 @@
       '<div class="pattern-title">' + esc(tx(g.title)) + '</div>' +
       (notes ? '<ul class="notes"><li class="notes-head">' + esc(t('noteLabel')) + '</li>' + notes + '</ul>' : '') +
       (examples ? '<div class="examples"><h3>' + esc(t('examples')) + '</h3>' + examples + '</div>' : '');
-    studyFrame(ch, 'grammar', ch.grammar, card, esc(tx(g.explain)));
+    studyFrame(ch, 'grammar', ch.grammar, card, jp(tx(g.explain)));
   }
 
   function lessonDone(ch, mode) {
@@ -482,7 +494,7 @@
         : '<span class="talk-initial" lang="ja">' + esc(l.who.charAt(0)) + '</span>';
       var label = you ? t('you') : sprite ? tx(sprite) : l.who;
       return '<div class="talk-line' + (you ? ' talk-line--you' : '') + '">' + avatar +
-        '<div class="talk-bubble"><span class="talk-who">' + esc(label) + '</span>' +
+        '<div class="talk-bubble"><span class="talk-who">' + jp(label) + '</span>' +
         '<span class="talk-text" lang="ja">' + jp(l.jp, fill) + '</span></div></div>';
     }).join('') + '</div>';
   }
@@ -531,7 +543,7 @@
     var a = quiz.answered; // null until the current question is answered
     var character = GUIDE[mode];
 
-    var bubble = esc(tx(q.prompt));
+    var bubble = jp(tx(q.prompt));
     if (a && a.correct) {
       bubble = '<strong>' + esc(a.streak >= 3 ? t('streakLine', a.streak) : t('correctLines')[a.cheer]) + '</strong>';
     }
@@ -547,13 +559,13 @@
       var picked = quiz.picked;
       var line = picked.length ? picked.map(function (pos) {
         return '<button type="button" class="btn tile" data-act="unpick" data-pos="' + pos + '"' + (a ? ' disabled' : '') + ' lang="ja">' +
-          esc(q.pieces[q.tiles[pos]]) + '</button>';
+          jp(q.pieces[q.tiles[pos]]) + '</button>';
       }).join('') : '<span class="order-hint">' + esc(t('orderHint')) + '</span>';
       body += '<div class="order-line' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '">' + line + '</div>' +
         '<div class="order-bank">' + q.tiles.map(function (pieceIdx, pos) {
           var used = picked.indexOf(pos) >= 0;
           return '<button type="button" class="btn tile' + (used ? ' is-used' : '') + '" data-act="pick" data-pos="' + pos + '"' +
-            (used || a ? ' disabled' : '') + ' lang="ja">' + esc(q.pieces[pieceIdx]) + '</button>';
+            (used || a ? ' disabled' : '') + ' lang="ja">' + jp(q.pieces[pieceIdx]) + '</button>';
         }).join('') + '</div>' +
         (a ? '' : '<div class="feedback"><button class="btn btn--primary" type="button" data-act="check-order"' +
           (picked.length === q.tiles.length ? '' : ' disabled') + '>' + esc(t('check')) + '</button></div>');
@@ -567,7 +579,7 @@
           else if (a.choiceIdx === idx) cls = ' is-wrong';
         }
         return '<button type="button" class="btn choice' + cls + '" data-act="choose" data-idx="' + idx + '"' +
-          (a ? ' disabled' : '') + ' lang="' + (typeof c.value === 'string' ? 'ja' : lang) + '">' + esc(tx(c.value)) + '</button>';
+          (a ? ' disabled' : '') + ' lang="' + (typeof c.value === 'string' ? 'ja' : lang) + '">' + jp(tx(c.value)) + '</button>';
       }).join('') + '</div>';
     } else {
       body += '<form class="answer-form" data-act="submit" autocomplete="off">' +
@@ -653,9 +665,9 @@
       (q.jp ? '<div class="q-jp" lang="ja" style="font-size:19px">' + jp(q.jp, fillText(q)) + '</div>' : '') +
       (q.translation ? '<div class="q-tr">' + esc(tx(q.translation)) + '</div>' : '') +
       '<div class="answer-row answer-row--wrong"><span class="lbl">' + esc(t('yourAnswer')) + '</span>' +
-      '<span class="val" lang="ja">' + esc(given || t('emptyAnswer')) + '</span></div>' +
+      '<span class="val" lang="ja">' + jp(given || t('emptyAnswer')) + '</span></div>' +
       '<div class="answer-row answer-row--right"><span class="lbl">' + esc(t('correctAnswer')) + '</span>' +
-      '<span class="val" lang="ja">' + esc(correctText) + '</span></div>' +
+      '<span class="val" lang="ja">' + jp(correctText) + '</span></div>' +
       (why ? '<div class="explain-block"><h3>' + esc(t('whyWrong')) + '</h3><p>' + jp(tx(why)) + '</p></div>' : '') +
       (q.explanation ? '<div class="explain-block"><h3>' + esc(t('explanation')) + '</h3><p>' + jp(tx(q.explanation)) + '</p></div>' : '') +
       (requeued ? '<p class="comeback">' + esc(t('comeBack')) + '</p>' : '') +
