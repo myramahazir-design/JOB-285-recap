@@ -16,6 +16,7 @@ It's plain HTML, CSS and JavaScript, with no build step and no dependencies.
 
 - **Locally:** open `index.html` in Chrome or Safari.
 - **Online:** put the folder on any static host, such as GitHub Pages (Settings → Pages → deploy from this branch).
+- **After changing files:** bump the `?v=` number on the CSS and script links in `index.html`, so browsers fetch the new files instead of showing a cached old version.
 
 ## Adding lesson content
 
