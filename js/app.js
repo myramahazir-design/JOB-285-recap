@@ -23,21 +23,37 @@
     return null;
   }
 
+  // Per-tab storage: forgotten when the tab is closed.
+  function session(key, value) {
+    try {
+      if (value === undefined) return sessionStorage.getItem(key);
+      if (value === null) sessionStorage.removeItem(key);
+      else sessionStorage.setItem(key, value);
+    } catch (e) { /* storage unavailable */ }
+    return null;
+  }
+
   var lang = store('mnn-lang') === 'zh' ? 'zh' : 'en';
+  var userName = session('mnn-name') || '';
+
+  // Fill in the learner's name wherever text says {name}.
+  function P(s) {
+    return typeof s === 'string' ? s.replace(/\{name\}/g, userName) : s;
+  }
 
   // UI string lookup
   function t(key) {
     var v = STR[lang][key];
     if (v === undefined) v = STR.en[key];
-    if (typeof v === 'function') return v.apply(null, Array.prototype.slice.call(arguments, 1));
-    return v;
+    if (typeof v === 'function') v = v.apply(null, Array.prototype.slice.call(arguments, 1));
+    return P(v);
   }
 
   // Content lookup: plain strings pass through, {en, zh} objects pick the current language.
   function tx(v) {
     if (v == null) return '';
-    if (typeof v === 'string') return v;
-    return v[lang] != null ? v[lang] : (v.en || '');
+    if (typeof v === 'string') return P(v);
+    return P(v[lang] != null ? v[lang] : (v.en || ''));
   }
 
   // Same string in both languages, for generated content that should follow the toggle.
@@ -60,11 +76,14 @@
   }
 
   // Japanese text: escapes, supports {漢字|かな} furigana and highlights （　） blanks.
+  // A fill like 'は … か' fills several blanks in turn.
   function jp(s, fill) {
-    var html = esc(s).replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\n/g, '<br>');
+    var fills = fill == null ? null : String(fill).split(' … ');
+    var n = 0;
+    var html = esc(P(s)).replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\n/g, '<br>');
     return html.replace(/[（(]\s*[　 ]?\s*[）)]/g, function () {
-      return fill != null
-        ? '<span class="blank blank--filled">' + esc(fill) + '</span>'
+      return fills
+        ? '<span class="blank blank--filled">' + esc(fills[Math.min(n++, fills.length - 1)]) + '</span>'
         : '<span class="blank">（　）</span>';
     });
   }
@@ -150,6 +169,7 @@
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
 
+    if (!userName) return renderWelcome();
     if (!route.ch) return renderHome();
     if (!route.mode) return renderChapter(route.ch);
     if (route.mode === 'vocab') return renderVocab(route.ch);
@@ -157,10 +177,29 @@
     return renderQuiz(route.ch, route.mode);
   }
 
+  // ---------- Welcome (asks the learner's name once per tab) ----------
+
+  function renderWelcome() {
+    app.innerHTML = '<section class="screen welcome">' +
+      guide('neko', esc(t('welcomeLine'))) +
+      '<form class="name-form px" data-act="name" autocomplete="off">' +
+      '<label class="name-label" for="name-input">' + esc(t('nameLabel')) + '</label>' +
+      '<div class="answer-form"><input class="answer-input" id="name-input" name="name" maxlength="20" ' +
+      'autocapitalize="words" spellcheck="false" placeholder="' + esc(t('namePlaceholder')) + '">' +
+      '<button class="btn btn--primary" type="submit">' + esc(t('nameGo')) + '</button></div>' +
+      '<p class="name-note">' + esc(t('nameNote')) + '</p></form></section>';
+    app.querySelector('#name-input').focus({ preventScroll: true });
+  }
+
   // ---------- Home ----------
 
   function hasContent(ch) {
     return ch.vocab.length || ch.grammar.length || ch.grammarQuiz.length || ch.vocabQuiz.length;
+  }
+
+  function chapterStars(ch) {
+    var best = bestScores();
+    return (best[ch.id + ':vocab-quiz'] || 0) + (best[ch.id + ':grammar-quiz'] || 0);
   }
 
   function renderHome() {
@@ -171,11 +210,13 @@
         '<span class="sign-num">' + esc(t('lessonN', ch.id)) + '</span>' +
         '<span class="sign-sub">' + esc(ch.title.jp) + '</span>' +
         (hasContent(ch) ? '' : '<span class="badge badge--soft">' + esc(t('comingSoon')) + '</span>') +
+        (chapterStars(ch) ? '<span class="sign-stars">★ ' + chapterStars(ch) + ' / 6</span>' : '') +
         '</a>';
     }).join('');
 
     app.innerHTML = '<section class="screen">' +
       guide('neko', esc(t('homeGreeting'))) +
+      '<button type="button" class="link-btn" data-act="change-name">' + esc(t('notYou')) + '</button>' +
       '<h1 class="section-title">' + esc(t('chooseChapter')) + '</h1>' +
       '<div class="chapter-grid">' + cards + '</div>' +
       '</section>';
@@ -184,7 +225,7 @@
   // ---------- Chapter menu ----------
 
   function quizLength(ch, mode) {
-    if (mode === 'grammar-quiz') return ch.grammarQuiz.length;
+    if (mode === 'grammar-quiz') return ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length;
     var n = ch.vocab.filter(function (v) { return v.group !== 'names' && v.en; }).length;
     return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
   }
@@ -196,6 +237,7 @@
       'vocab-quiz': t('questionsCount', quizLength(ch, 'vocab-quiz')),
       'grammar-quiz': t('questionsCount', quizLength(ch, 'grammar-quiz'))
     };
+    var best = bestScores();
     var modes = MODES.map(function (m) {
       var isQuiz = m.indexOf('quiz') >= 0;
       return '<a class="mode px' + (isQuiz ? ' mode--quiz' : '') + '" href="#/ch/' + ch.id + '/' + m + '">' +
@@ -203,7 +245,9 @@
         '<span class="mode-text"><span class="mode-jp">' + MODE_JP[m] + '</span>' +
         '<span class="mode-name">' + esc(t('modes')[m]) + '</span>' +
         '<span class="mode-meta">' + esc(t('modeDesc')[m]) + ' · ' + esc(counts[m]) +
-        (m === 'grammar-quiz' && ch.sampleQuiz ? ' · ' + esc(t('sampleTag')) : '') + '</span></span></a>';
+        (m === 'grammar-quiz' && ch.sampleQuiz ? ' · ' + esc(t('sampleTag')) : '') + '</span>' +
+        (isQuiz && best[ch.id + ':' + m] != null ? '<span class="mode-stars">' + starText(best[ch.id + ':' + m]) + '</span>' : '') +
+        '</span></a>';
     }).join('');
 
     app.innerHTML = '<section class="screen">' +
@@ -286,15 +330,34 @@
   }
 
   // ---------- Quiz ----------
+  // Question shapes after normalizeQuestion():
+  //   scene:  { type, who, title, lines }                 a story beat between questions (not scored)
+  //   choice: { type, prompt, jp, talk, card, translation, explanation, choices: [{ value, correct, why }] }
+  //   input:  { ...same context fields, answers, why }
+  //   order:  { ...same context fields, pieces, answers, correctText, tiles }
 
-  // Turn authored questions into a uniform shape:
-  // { type, prompt, jp, choices: [{ value, correct, why }], answers, why, explanation }
-  function normalizeQuestion(q) {
+  // Replace {name} everywhere in authored content (object keys too, so `why` keys still match choices).
+  function personalize(v) {
+    if (typeof v === 'string') return P(v);
+    if (Array.isArray(v)) return v.map(personalize);
+    if (v && typeof v === 'object') {
+      var o = {};
+      Object.keys(v).forEach(function (k) { o[P(k)] = personalize(v[k]); });
+      return o;
+    }
+    return v;
+  }
+
+  function normalizeQuestion(raw) {
+    var q = personalize(raw);
+    if (q.type === 'scene') return { type: 'scene', who: q.who || 'neko', title: q.title, lines: q.lines || [] };
     var out = {
       type: q.type === 'input' || q.type === 'order' ? q.type : 'choice',
       prompt: q.prompt || (q.type === 'order' ? both('orderPrompt') : null),
       jp: q.jp || '',
       translation: q.translation,
+      talk: q.talk,
+      card: q.card,
       explanation: q.explanation,
       why: q.why || {}
     };
@@ -311,10 +374,12 @@
       return out;
     }
     var answerIdx = typeof q.answer === 'number' ? q.answer : q.choices.indexOf(q.answer);
-    out.choices = shuffle(q.choices.map(function (c, i) {
+    var list = q.choices.map(function (c, i) {
       var key = typeof c === 'string' ? c : i;
       return { value: c, correct: i === answerIdx, why: out.why[key] };
-    }));
+    });
+    out.fixedOrder = !!q.fixedOrder;
+    out.choices = out.fixedOrder ? list : shuffle(list);
     return out;
   }
 
@@ -326,6 +391,13 @@
       if (s.map(function (i) { return pieces[i]; }).join('') !== pieces.join('')) return s;
     }
     return idx.slice().reverse();
+  }
+
+  // A fresh copy of a question with its options reshuffled, for second tries.
+  function reshuffled(q) {
+    if (q.type === 'choice') return Object.assign({}, q, { choices: q.fixedOrder ? q.choices : shuffle(q.choices) });
+    if (q.type === 'order') return Object.assign({}, q, { tiles: shuffleTiles(q.pieces) });
+    return Object.assign({}, q);
   }
 
   // When a chapter has no authored vocab quiz, build one from its word list.
@@ -364,7 +436,11 @@
   }
 
   function buildQuiz(ch, mode) {
-    if (mode === 'grammar-quiz') return shuffle(ch.grammarQuiz).map(normalizeQuestion);
+    if (mode === 'grammar-quiz') {
+      // A quiz with story scenes is played in its authored order.
+      var story = ch.grammarQuiz.some(function (q) { return q.type === 'scene'; });
+      return (story ? ch.grammarQuiz : shuffle(ch.grammarQuiz)).map(normalizeQuestion);
+    }
     if (ch.vocabQuiz.length) return shuffle(ch.vocabQuiz).map(normalizeQuestion);
     return generateVocabQuiz(ch.vocab);
   }
@@ -376,8 +452,71 @@
       .replace(/[。.!！?？、,]+$/g, '');
   }
 
-  function startQuiz(questions) {
-    view.quiz = { questions: questions, i: 0, score: 0, answered: null, wrong: [], picked: [] };
+  function startQuiz(questions, isReview) {
+    view.quiz = {
+      questions: questions,
+      total: questions.filter(function (q) { return q.type !== 'scene'; }).length,
+      isReview: !!isReview, // a "retry mistakes" run doesn't update the best score
+      i: 0, line: 0, score: 0, streak: 0, bestStreak: 0,
+      answered: null, wrong: [], picked: []
+    };
+  }
+
+  // ----- Context blocks shown above a question -----
+
+  function renderCard(c) {
+    var rows = [['country', c.country], ['job', c.job], ['org', c.org], ['age', c.age != null ? c.age + '歳' : null]]
+      .filter(function (r) { return r[1]; });
+    return '<div class="namecard"><div class="namecard-top">名刺</div>' +
+      '<div class="namecard-name" lang="ja">' + jp(c.name) + '</div><dl>' +
+      rows.map(function (r) {
+        return '<div><dt>' + esc(t('cardLabels')[r[0]]) + '</dt><dd lang="ja">' + jp(String(r[1])) + '</dd></div>';
+      }).join('') + '</dl></div>';
+  }
+
+  function renderTalk(lines, fill) {
+    return '<div class="talk">' + lines.map(function (l) {
+      var you = l.who === 'you';
+      var sprite = SPR.CHARACTERS[l.who];
+      var avatar = you ? '' : sprite ? SPR.svg(l.who, 'talk-sprite')
+        : '<span class="talk-initial" lang="ja">' + esc(l.who.charAt(0)) + '</span>';
+      var label = you ? t('you') : sprite ? tx(sprite) : l.who;
+      return '<div class="talk-line' + (you ? ' talk-line--you' : '') + '">' + avatar +
+        '<div class="talk-bubble"><span class="talk-who">' + esc(label) + '</span>' +
+        '<span class="talk-text" lang="ja">' + jp(l.jp, fill) + '</span></div></div>';
+    }).join('') + '</div>';
+  }
+
+  // The text that fills （　） blanks once the question is answered.
+  function fillText(q) {
+    if (q.type === 'input') return q.answers[0];
+    if (q.type === 'order') return q.correctText;
+    return tx(q.choices.filter(function (c) { return c.correct; })[0].value);
+  }
+
+  // Progress counts only the original questions, so second tries never make the finish line move away.
+  function quizTop(ch, quiz) {
+    var done = quiz.questions.slice(0, quiz.i).filter(function (q) { return q.type !== 'scene' && !q.retry; }).length;
+    var cur = quiz.questions[quiz.i];
+    var label = cur && cur.type !== 'scene' && !cur.retry ? t('question', done + 1, quiz.total) : done + ' / ' + quiz.total;
+    return '<div class="toprow">' + backLink('#/ch/' + ch.id, t('backToLesson')) +
+      (quiz.streak >= 2 ? '<span class="combo" aria-live="polite">' + esc(t('combo', quiz.streak)) + '</span>' : '') +
+      progressBar(done, quiz.total, label) + '</div>';
+  }
+
+  function renderScene(ch, quiz, q) {
+    var last = quiz.line >= q.lines.length - 1;
+    app.innerHTML = '<section class="screen">' + quizTop(ch, quiz) +
+      '<article class="scene-card px">' +
+      (q.title ? '<div class="scene-title">' + esc(tx(q.title)) + '</div>' : '') +
+      SPR.svg(q.who, 'scene-sprite') +
+      '<div class="bubble px scene-bubble"><span class="bubble-name">' + esc(tx(SPR.CHARACTERS[q.who])) + '</span>' +
+      q.lines.slice(0, quiz.line + 1).map(function (l, idx) {
+        return '<p class="bubble-text' + (idx === quiz.line ? ' is-new' : '') + '">' + jp(tx(l)) + '</p>';
+      }).join('') + '</div>' +
+      '<div class="feedback"><button class="btn btn--primary" type="button" data-act="scene-next">' +
+      esc(last ? t('letsGo') : '▶') + '</button></div></article></section>';
+    app.querySelector('[data-act="scene-next"]').focus({ preventScroll: true });
   }
 
   function renderQuiz(ch, mode) {
@@ -387,15 +526,22 @@
     if (quiz.i >= quiz.questions.length) return renderResults(ch, mode);
 
     var q = quiz.questions[quiz.i];
+    if (q.type === 'scene') return renderScene(ch, quiz, q);
+
     var a = quiz.answered; // null until the current question is answered
-    var n = quiz.questions.length;
     var character = GUIDE[mode];
 
     var bubble = esc(tx(q.prompt));
-    if (a && a.correct) bubble = '<strong>' + esc(t('correctLines')[a.cheer]) + '</strong>';
+    if (a && a.correct) {
+      bubble = '<strong>' + esc(a.streak >= 3 ? t('streakLine', a.streak) : t('correctLines')[a.cheer]) + '</strong>';
+    }
 
-    var body = q.jp ? '<div class="q-jp" lang="ja">' + jp(q.jp, a ? fillText(q) : null) + '</div>' : '';
-    if (q.translation) body += '<div class="q-tr">' + esc(tx(q.translation)) + '</div>';
+    var fill = a ? fillText(q) : null;
+    var body = (q.retry ? '<div class="chip chip--retry">' + esc(t('secondChance')) + '</div>' : '') +
+      (q.card ? renderCard(q.card) : '') +
+      (q.talk ? renderTalk(q.talk, fill) : '') +
+      (q.jp ? '<div class="q-jp" lang="ja">' + jp(q.jp, fill) + '</div>' : '') +
+      (q.translation ? '<div class="q-tr">' + esc(tx(q.translation)) + '</div>' : '');
 
     if (q.type === 'order') {
       var picked = quiz.picked;
@@ -412,7 +558,9 @@
         (a ? '' : '<div class="feedback"><button class="btn btn--primary" type="button" data-act="check-order"' +
           (picked.length === q.tiles.length ? '' : ' disabled') + '>' + esc(t('check')) + '</button></div>');
     } else if (q.type === 'choice') {
-      body += '<div class="choices">' + q.choices.map(function (c, idx) {
+      // Sentence-length options get one per row so they stay readable on phones.
+      var wide = q.choices.some(function (c) { return tx(c.value).length > 9; });
+      body += '<div class="choices' + (wide ? ' choices--wide' : '') + '">' + q.choices.map(function (c, idx) {
         var cls = '';
         if (a) {
           if (c.correct) cls = ' is-correct';
@@ -423,37 +571,27 @@
       }).join('') + '</div>';
     } else {
       body += '<form class="answer-form" data-act="submit" autocomplete="off">' +
-        '<input class="answer-input' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '" name="answer" lang="ja" ' +
+        '<input class="answer-input' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '" id="quiz-answer" name="answer" lang="ja" ' +
         'autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' + esc(t('typePlaceholder')) + '"' +
         ' value="' + esc(a ? a.given : '') + '"' + (a ? ' readonly' : '') + '>' +
         (a ? '' : '<button class="btn btn--primary" type="submit">' + esc(t('check')) + '</button>') +
         '</form>';
     }
 
-    app.innerHTML = '<section class="screen">' +
-      '<div class="toprow">' + backLink('#/ch/' + ch.id, t('backToLesson')) +
-      progressBar(quiz.i + (a ? 1 : 0), n, t('question', quiz.i + 1, n)) + '</div>' +
+    // After a correct answer, show the explanation too: knowing *why* makes it stick.
+    if (a && a.correct && q.explanation) {
+      body += '<div class="tip"><span class="tip-head">' + esc(t('explanation')) + '</span>' + jp(tx(q.explanation)) + '</div>';
+    }
+
+    app.innerHTML = '<section class="screen">' + quizTop(ch, quiz) +
       guide(character, bubble, a && a.correct ? 'guide--happy' : '') +
       '<article class="card px">' + body +
       (a ? '<div class="feedback"><button class="btn btn--primary" type="button" data-act="next-q">' +
-        esc(quiz.i === n - 1 ? t('finish') : t('next')) + ' ▶</button></div>' : '') +
+        esc(quiz.i === quiz.questions.length - 1 ? t('finish') : t('next')) + ' ▶</button></div>' : '') +
       '</article></section>';
 
     var input = app.querySelector('.answer-input');
-    if (input && !a) {
-      input.focus({ preventScroll: true });
-      // Pressing Enter to confirm a Japanese IME conversion must not submit the answer.
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) e.preventDefault();
-      });
-    }
-  }
-
-  // The text that fills a （　） blank once the question is answered.
-  function fillText(q) {
-    if (q.type === 'input') return q.answers[0];
-    if (q.type === 'order') return q.correctText;
-    return tx(q.choices.filter(function (c) { return c.correct; })[0].value);
+    if (input && !a) input.focus({ preventScroll: true });
   }
 
   function answerQuestion(given, choiceIdx) {
@@ -476,14 +614,32 @@
         if (normalizeAnswer(k) === norm) why = q.why[k];
       });
     }
-    quiz.answered = { correct: correct, given: given, choiceIdx: choiceIdx, cheer: Math.floor(Math.random() * t('correctLines').length) };
-    if (correct) quiz.score++;
-    else quiz.wrong.push(q);
+
+    var requeued = false;
+    if (correct) {
+      quiz.streak++;
+      quiz.bestStreak = Math.max(quiz.bestStreak, quiz.streak);
+      if (!q.retry) quiz.score++;
+    } else {
+      quiz.streak = 0;
+      if (!q.retry) {
+        quiz.wrong.push(q);
+        // Bring the question back a few steps later: retrieving it again is what makes it stick.
+        var copy = reshuffled(q);
+        copy.retry = true;
+        quiz.questions.splice(Math.min(quiz.i + 4, quiz.questions.length), 0, copy);
+        requeued = true;
+      }
+    }
+    quiz.answered = {
+      correct: correct, given: given, choiceIdx: choiceIdx, streak: quiz.streak,
+      cheer: Math.floor(Math.random() * t('correctLines').length)
+    };
     render();
-    if (!correct) showMistake(q, given, why, choiceIdx);
+    if (!correct) showMistake(q, given, why, choiceIdx, requeued);
   }
 
-  function showMistake(q, given, why, choiceIdx) {
+  function showMistake(q, given, why, choiceIdx, requeued) {
     var character = GUIDE[route.mode];
 
     openModal(function () {
@@ -500,21 +656,44 @@
       '<span class="val" lang="ja">' + esc(given || t('emptyAnswer')) + '</span></div>' +
       '<div class="answer-row answer-row--right"><span class="lbl">' + esc(t('correctAnswer')) + '</span>' +
       '<span class="val" lang="ja">' + esc(correctText) + '</span></div>' +
-      (why ? '<div class="explain-block"><h3>' + esc(t('whyWrong')) + '</h3><p>' + esc(tx(why)) + '</p></div>' : '') +
-      (q.explanation ? '<div class="explain-block"><h3>' + esc(t('explanation')) + '</h3><p>' + esc(tx(q.explanation)) + '</p></div>' : '') +
+      (why ? '<div class="explain-block"><h3>' + esc(t('whyWrong')) + '</h3><p>' + jp(tx(why)) + '</p></div>' : '') +
+      (q.explanation ? '<div class="explain-block"><h3>' + esc(t('explanation')) + '</h3><p>' + jp(tx(q.explanation)) + '</p></div>' : '') +
+      (requeued ? '<p class="comeback">' + esc(t('comeBack')) + '</p>' : '') +
       '<div class="modal-actions"><button class="btn btn--primary" type="button" data-act="close-modal">' + esc(t('gotIt')) + '</button></div>';
     }, { closable: true, className: 'modal--wrong' });
   }
 
+  // ----- Best results, kept in this browser -----
+
+  function bestScores() {
+    try { return JSON.parse(store('mnn-best') || '{}') || {}; } catch (e) { return {}; }
+  }
+
+  function starText(n) {
+    var s = '';
+    for (var i = 0; i < 3; i++) s += i < n ? '★' : '☆';
+    return s;
+  }
+
   function renderResults(ch, mode) {
     var quiz = view.quiz;
-    var n = quiz.questions.length;
-    var ratio = quiz.score / n;
+    var n = quiz.total;
+    var ratio = n ? quiz.score / n : 0;
     var stars = ratio === 1 ? 3 : ratio >= 0.6 ? 2 : ratio > 0 ? 1 : 0;
     var msg = stars === 3 ? t('resultsGreat') : stars === 2 ? t('resultsGood') : t('resultsTry');
     var starHtml = '';
     for (var s = 0; s < 3; s++) starHtml += s < stars ? '★' : '<span class="off">★</span>';
     var studyMode = mode.replace('-quiz', '');
+
+    if (!quiz.isReview && !quiz.saved) {
+      var best = bestScores();
+      var key = ch.id + ':' + mode;
+      if (!(best[key] >= stars)) {
+        best[key] = stars;
+        store('mnn-best', JSON.stringify(best));
+      }
+      quiz.saved = true;
+    }
 
     app.innerHTML = '<section class="screen">' +
       '<div class="toprow">' + backLink('#/ch/' + ch.id, t('backToLesson')) + '</div>' +
@@ -523,6 +702,7 @@
       '<h1 class="modal-title">' + esc(t('resultsTitle')) + '</h1>' +
       '<div class="stars" aria-label="' + stars + ' / 3">' + starHtml + '</div>' +
       '<div class="score">' + esc(t('score', quiz.score, n)) + '</div>' +
+      (quiz.bestStreak >= 2 ? '<div class="best-combo">' + esc(t('bestCombo', quiz.bestStreak)) + '</div>' : '') +
       '<div class="actions">' +
       (quiz.wrong.length ? '<button class="btn btn--primary" type="button" data-act="retry-wrong">' + esc(t('retryMistakes')) + '</button>' : '') +
       '<button class="btn" type="button" data-act="retry-all">' + esc(t('retryAll')) + '</button>' +
@@ -581,6 +761,17 @@
       return;
     }
     if (act === 'close-modal') return closeModal();
+    if (act === 'change-name') {
+      userName = '';
+      session('mnn-name', null);
+      return render();
+    }
+    if (act === 'scene-next' && view.quiz) {
+      var scene = view.quiz.questions[view.quiz.i];
+      if (view.quiz.line < scene.lines.length - 1) view.quiz.line++;
+      else { view.quiz.i++; view.quiz.line = 0; window.scrollTo(0, 0); }
+      return render();
+    }
 
     var items = route.mode === 'vocab' ? route.ch.vocab : route.mode === 'grammar' ? route.ch.grammar : null;
     if (act === 'prev' && view.index > 0) { view.index--; render(); }
@@ -613,11 +804,7 @@
       window.scrollTo(0, 0);
     }
     if (act === 'retry-wrong') {
-      startQuiz(shuffle(view.quiz.wrong).map(function (q) {
-        if (q.type === 'choice') return Object.assign({}, q, { choices: shuffle(q.choices) });
-        if (q.type === 'order') return Object.assign({}, q, { tiles: shuffleTiles(q.pieces) });
-        return q;
-      }));
+      startQuiz(shuffle(view.quiz.wrong).map(reshuffled), true);
       render();
     }
     if (act === 'retry-all') {
@@ -627,6 +814,15 @@
   });
 
   document.addEventListener('submit', function (e) {
+    var nameForm = e.target.closest('[data-act="name"]');
+    if (nameForm) {
+      e.preventDefault();
+      var name = nameForm.elements.name.value.trim().slice(0, 20);
+      if (!name) return nameForm.elements.name.focus();
+      userName = name;
+      session('mnn-name', name);
+      return render();
+    }
     var form = e.target.closest('[data-act="submit"]');
     if (!form) return;
     e.preventDefault();
@@ -635,6 +831,8 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modalOpts && modalOpts.closable) closeModal();
+    // Pressing Enter to confirm a Japanese IME conversion must not submit the form.
+    if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) e.preventDefault();
   });
 
   // Some browsers load speech voices asynchronously.

@@ -5,7 +5,9 @@ A review web app for *Minna no Nihongo* Lessons 1–8, styled as a cosy pixel-ar
 - Pick a lesson, then choose **Vocabulary**, **Grammar**, **Vocab Quiz** or **Grammar Quiz**.
 - After a vocab or grammar review, the app offers to take you to the matching quiz.
 - Use the **EN / 中文** toggle in the top-right corner to switch language. The app remembers your choice.
-- If you get a quiz answer wrong, a pop-up shows your answer, the correct answer, what went wrong and an explanation.
+- The app asks your name when you open it and uses it throughout. It forgets the name when the tab is closed.
+- Lesson quizzes are played as short stories with the town's characters: conversations, name cards, rearranging sentences and fill-in-the-blank.
+- If you get a quiz answer wrong, a pop-up shows your answer, the correct answer, what went wrong and an explanation, and the question comes back a few steps later for a second try.
 - The guide characters are Tanuki-sensei (vocab), Kitsune-san (grammar) and Neko-chan (host).
 
 ## Running it
@@ -81,6 +83,10 @@ Notes on the format:
 - Vocab items can have a `group`: `words`, `expressions`, `countries` or `names`. Items in `names` (textbook company and school names) appear in the review but not in the quiz.
 - Grammar items can have `notes`: a list of short points shown under the pattern.
 - Any question can have a `translation`, shown under the Japanese.
+- Any question can also have `talk` (a short chat: `[{ who: 'you' | 'neko' | 'tanuki' | 'kitsune' | 'ミラー', jp: '…' }]`) and `card` (a name card: `{ name, country, job, org, age }`).
+- `{ type: 'scene', who, title, lines }` adds a story beat between questions. A quiz that contains scenes is played in its written order.
+- `{name}` anywhere in the text is replaced with the learner's name, which the app asks for once per tab.
+- Multiple choice: `fixedOrder: true` keeps the options in order (for ○ / × questions). `'は … か'` fills two blanks.
 - Chinese text uses Simplified characters.
 - Typed answers ignore spaces, full-width or half-width differences and trailing punctuation.
 
