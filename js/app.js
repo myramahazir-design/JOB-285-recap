@@ -187,16 +187,45 @@
   // ---------- Speech (Japanese TTS, works in Chrome and Safari) ----------
 
   var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  if (canSpeak && window.speechSynthesis.addEventListener) {
+    window.speechSynthesis.addEventListener('voiceschanged', function () {
+      japaneseVoice();
+      if (view.quiz && route.mode === 'dictation' && noJapaneseVoice()) render();
+    });
+  }
 
-  function speak(text, slow) {
-    if (!canSpeak) return;
-    window.speechSynthesis.cancel();
+  var voicesLoaded = false;
+  var lastUtterance = null; // kept so the browser doesn't drop it mid-sentence
+
+  function japaneseVoice() {
+    var voices = window.speechSynthesis.getVoices();
+    if (voices.length) voicesLoaded = true;
+    return voices.filter(function (v) { return /^ja/i.test(v.lang); })[0] || null;
+  }
+
+  // True once we know this device has voices but none of them speak Japanese.
+  function noJapaneseVoice() {
+    return canSpeak && voicesLoaded && !japaneseVoice();
+  }
+
+  // Must be called straight from a tap: iPhone/Safari and some embeds block speech otherwise.
+  // onFail runs if the browser refuses to speak, so the page can show a fallback.
+  function speak(text, slow, onFail) {
+    if (!canSpeak) { if (onFail) onFail(); return; }
+    var synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (synth.paused) synth.resume();
     var u = new SpeechSynthesisUtterance(text.replace(/[〜～［］\[\]]/g, ''));
     u.lang = 'ja-JP';
     u.rate = slow ? 0.55 : 0.85;
-    var voice = window.speechSynthesis.getVoices().filter(function (v) { return /^ja/i.test(v.lang); })[0];
+    u.volume = 1;
+    var voice = japaneseVoice();
     if (voice) u.voice = voice;
-    window.speechSynthesis.speak(u);
+    u.onerror = function (e) {
+      if (onFail && e.error !== 'interrupted' && e.error !== 'canceled') onFail(e.error);
+    };
+    lastUtterance = u;
+    synth.speak(u);
   }
 
   // ---------- Routing ----------
@@ -237,6 +266,7 @@
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
 
+    document.body.classList.toggle('is-home', !!userName && !route.ch);
     if (!userName) return renderWelcome();
     if (!route.ch) return renderHome();
     if (!route.mode) return renderChapter(route.ch);
@@ -272,26 +302,44 @@
     }, 0);
   }
 
-  // Each lesson is a village on a winding path. Tapping a village walks the traveller
-  // there along the path, then opens the lesson. Any village can be visited at any time.
-  var MAP = { w: 360, top: 104, step: 126, xs: [92, 262, 104, 252, 88, 268, 112, 248] };
+  // Each lesson is a village on a winding path, laid out to fit the screen without scrolling:
+  // 4 villages per row on wide screens, 2 per row on phones, snaking back and forth.
+  // Tapping a village walks the traveller there along the path, then opens the lesson.
   var VILLAGE_ART = ['house', 'shrinePink', 'housePink', 'shrine'];
   var traveling = false;
+  var mapState = null;
 
   function mapIds() {
     return Object.keys(DATA.chapters).map(Number).sort(function (a, b) { return a - b; });
   }
 
-  function mapLayout() {
+  function mapLayout(w, h) {
     var ids = mapIds();
-    var pts = ids.map(function (id, i) { return { id: id, x: MAP.xs[i % MAP.xs.length], y: MAP.top + i * MAP.step }; });
-    var h = MAP.top * 2 + (ids.length - 1) * MAP.step;
-    var d = 'M' + pts[0].x + ' ' + pts[0].y;
+    var cols = w / h >= 1.1 ? Math.min(4, ids.length) : 2;
+    var rows = Math.ceil(ids.length / cols);
+    var rowH = h / rows, colW = w / cols;
+    var pts = ids.map(function (id, i) {
+      var r = Math.floor(i / cols), c = i % cols;
+      if (r % 2) c = cols - 1 - c; // snake back on every other row
+      return { id: id, x: colW * (c + 0.5), y: rowH * r + rowH * 0.52 + (c % 2 ? 6 : -6) };
+    });
+    var d = 'M' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
     for (var i = 1; i < pts.length; i++) {
-      var p0 = pts[i - 1], p1 = pts[i], m = (p1.y - p0.y) / 2;
-      d += ' C' + p0.x + ' ' + (p0.y + m) + ' ' + p1.x + ' ' + (p1.y - m) + ' ' + p1.x + ' ' + p1.y;
+      var p0 = pts[i - 1], p1 = pts[i], c1, c2;
+      if (Math.abs(p1.y - p0.y) > rowH / 2) {
+        // Down to the next row: bulge out toward the nearer edge.
+        var out = (p0.x > w / 2 ? 1 : -1) * colW * 0.42;
+        c1 = [p0.x + out, p0.y + (p1.y - p0.y) * 0.3];
+        c2 = [p1.x + out, p1.y - (p1.y - p0.y) * 0.3];
+      } else {
+        var mx = (p1.x - p0.x) / 2;
+        c1 = [p0.x + mx, p0.y];
+        c2 = [p1.x - mx, p1.y];
+      }
+      d += ' C' + c1[0].toFixed(1) + ' ' + c1[1].toFixed(1) + ' ' + c2[0].toFixed(1) + ' ' + c2[1].toFixed(1) +
+        ' ' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1);
     }
-    return { ids: ids, pts: pts, h: h, d: d };
+    return { ids: ids, pts: pts, w: w, h: h, d: d, rowH: rowH, colW: colW };
   }
 
   function currentVillage() {
@@ -303,60 +351,78 @@
   function mapScenery(layout) {
     var out = '', seed = 11;
     function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-    for (var i = 0; i < 60; i++) {
-      var x = 6 + rnd() * 334, y = 6 + rnd() * (layout.h - 30);
+    var n = Math.round(layout.w * layout.h / 4200);
+    for (var i = 0; i < n; i++) {
+      var x = 4 + rnd() * (layout.w - 20), y = 4 + rnd() * (layout.h - 24);
       var kind = rnd() < 0.35 ? 'sakura' : 'pine';
-      var clear = layout.pts.every(function (p) { return Math.abs(p.x - x) > 70 || Math.abs(p.y - y) > 60; }) &&
-        Math.abs(x - 180) > 40;
+      var clear = layout.pts.every(function (p) {
+        return Math.abs(p.x - x) > layout.colW * 0.36 || Math.abs(p.y - y) > layout.rowH * 0.48;
+      });
       if (clear) out += '<g transform="translate(' + x.toFixed(0) + ' ' + y.toFixed(0) + ') scale(1.5)">' + SPR.raw(kind) + '</g>';
     }
     return out;
   }
 
-  function pct(v, total) { return (v / total * 100).toFixed(3) + '%'; }
-
   function renderHome() {
-    var layout = mapLayout();
+    var ids = mapIds();
     var here = currentVillage();
-    var herePt = layout.pts[layout.ids.indexOf(here)];
-    var next = layout.ids[layout.ids.indexOf(here) + 1];
+    var next = ids[ids.indexOf(here) + 1];
+    app.innerHTML = '<section class="screen home">' +
+      guide('neko', esc(t('homeGreeting'))) +
+      '<div class="map-actions">' +
+      '<button type="button" class="btn btn--small" data-act="travel" data-ch="' + here + '">' + esc(t('enterVillage', here)) + '</button>' +
+      (next ? '<button type="button" class="btn btn--small btn--primary" data-act="travel" data-ch="' + next + '">' + esc(t('nextVillage', next)) + '</button>' : '') +
+      '<button type="button" class="link-btn" data-act="change-name">' + esc(t('notYou')) + '</button>' +
+      '</div>' +
+      '<div class="map px" id="map" role="group" aria-label="' + esc(t('chooseChapter')) + '"></div></section>';
+    drawMap();
+  }
+
+  // Sizes the map to the space left on screen, then draws the road, villages and traveller.
+  function drawMap() {
+    var box = document.getElementById('map');
+    if (!box) return;
+    var w = box.clientWidth;
+    var h = Math.round(window.innerHeight - box.getBoundingClientRect().top - 12);
+    h = Math.max(320, Math.min(h, w * 2.2));
+    box.style.height = h + 'px';
+    var layout = mapState = mapLayout(w, h);
+    box.classList.toggle('map--compact', layout.rowH < 110);
+    var here = currentVillage();
+    var art = Math.max(30, Math.min(54, layout.rowH * 0.34));
 
     var villages = layout.pts.map(function (p, i) {
       var ch = DATA.chapters[p.id];
       var stars = chapterStars(ch);
       return '<button type="button" class="village' + (p.id === here ? ' is-here' : '') + (hasContent(ch) ? '' : ' is-soon') +
-        '" data-act="travel" data-ch="' + p.id + '" style="left:' + pct(p.x, MAP.w) + ';top:' + pct(p.y, layout.h) + '" ' +
-        'aria-label="' + esc(t('lessonN', p.id) + ' · ' + ch.title.jp) + '">' +
+        '" data-act="travel" data-ch="' + p.id + '" style="left:' + p.x.toFixed(1) + 'px;top:' + p.y.toFixed(1) + 'px;--art:' + art.toFixed(0) + 'px" ' +
+        'aria-label="' + esc(STR.en.lessonN(p.id) + ' · ' + ch.title.jp) + '" title="' + esc(ch.title.jp) + '">' +
         SPR.svg(VILLAGE_ART[i % VILLAGE_ART.length], 'village-art') +
         '<span class="village-sign"><span class="village-kanji">' + jp('第' + kanjiNum(p.id) + '課') + '</span>' +
-        '<span class="village-title" lang="ja">' + jp(ch.title.jp) + '</span>' +
-        (stars ? '<span class="village-stars">★ ' + stars + ' / 9</span>' : '') +
-        (hasContent(ch) ? '' : '<span class="badge badge--soft">' + esc(t('comingSoon')) + '</span>') +
+        '<span class="village-en">' + esc(STR.en.lessonN(p.id)) + '</span>' +
+        (stars ? '<span class="village-stars">★ ' + stars + ' / 9</span>'
+          : hasContent(ch) ? '' : '<span class="village-soon">' + esc(t('comingSoon')) + '</span>') +
         '</span></button>';
     }).join('');
 
-    var map = '<div class="map px" style="aspect-ratio:' + MAP.w + ' / ' + layout.h + '">' +
-      '<svg class="map-svg" viewBox="0 0 ' + MAP.w + ' ' + layout.h + '" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' +
+    var herePt = layout.pts[layout.ids.indexOf(here)];
+    box.innerHTML = '<svg class="map-svg" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' +
       mapScenery(layout) +
       '<path d="' + layout.d + '" class="map-road-edge"/>' +
       '<path d="' + layout.d + '" class="map-road" id="map-path"/>' +
       '<path d="' + layout.d + '" class="map-road-stones"/>' +
       '</svg>' + villages +
-      '<div class="traveler" id="traveler" style="left:' + pct(herePt.x, MAP.w) + ';top:' + pct(herePt.y, layout.h) + '">' +
-      '<span class="traveler-name">' + esc(userName) + '</span>' + SPR.svg('traveler') + '</div>' +
-      '</div>';
-
-    app.innerHTML = '<section class="screen">' +
-      guide('neko', esc(t('homeGreeting'))) +
-      '<button type="button" class="link-btn" data-act="change-name">' + esc(t('notYou')) + '</button>' +
-      '<div class="map-actions">' +
-      '<button type="button" class="btn" data-act="travel" data-ch="' + here + '">' + esc(t('enterVillage', here)) + '</button>' +
-      (next ? '<button type="button" class="btn btn--primary" data-act="travel" data-ch="' + next + '">' + esc(t('nextVillage', next)) + '</button>' : '') +
-      '</div>' +
-      '<h1 class="section-title">' + esc(t('chooseChapter')) + '</h1>' +
-      '<p class="map-hint">' + esc(t('mapHint')) + '</p>' +
-      map + '</section>';
+      '<div class="traveler" id="traveler" style="left:' + herePt.x.toFixed(1) + 'px;top:' + herePt.y.toFixed(1) + 'px">' +
+      '<span class="traveler-name">' + esc(userName) + '</span>' + SPR.svg('traveler') + '</div>';
   }
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () {
+      if (!traveling && document.getElementById('map')) drawMap();
+    }, 150);
+  });
 
   // Length along the road up to village number idx.
   function roadLengthTo(layout, idx) {
@@ -372,7 +438,7 @@
 
   function travelTo(id) {
     if (traveling) return;
-    var layout = mapLayout();
+    var layout = mapState;
     var from = currentVillage();
     var go = function () {
       traveling = false;
@@ -382,13 +448,11 @@
     var walker = document.getElementById('traveler');
     var road = document.getElementById('map-path');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!walker || !road || from === id || reduce) return go();
+    if (!layout || !walker || !road || from === id || reduce) return go();
 
     var i0 = layout.ids.indexOf(from), i1 = layout.ids.indexOf(id);
     var l0 = roadLengthTo(layout, i0), l1 = roadLengthTo(layout, i1);
     var duration = Math.min(2800, 600 + Math.abs(i1 - i0) * 450);
-    var target = app.querySelector('.village[data-ch="' + id + '"]');
-    if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
 
     traveling = true;
     walker.classList.add('is-walking');
@@ -400,8 +464,8 @@
       var pt = road.getPointAtLength(l0 + (l1 - l0) * e);
       if (lastX !== null && Math.abs(pt.x - lastX) > 0.05) walker.classList.toggle('is-left', pt.x < lastX);
       lastX = pt.x;
-      walker.style.left = pct(pt.x, MAP.w);
-      walker.style.top = pct(pt.y, layout.h);
+      walker.style.left = pt.x.toFixed(1) + 'px';
+      walker.style.top = pt.y.toFixed(1) + 'px';
       if (k < 1) window.requestAnimationFrame(step);
       else {
         walker.classList.remove('is-walking');
@@ -816,10 +880,13 @@
     } else {
       var dict = q.type === 'dictation';
       if (dict) {
-        body += '<div class="dict-controls">' + (canSpeak
-          ? '<button type="button" class="btn btn--blue dict-play" data-act="dict-play">🔊 ' + esc(t('dictPlay')) + '</button>' +
-            '<button type="button" class="btn btn--small" data-act="dict-slow">' + esc(t('dictSlow')) + '</button>'
-          : '<p class="dict-fallback">' + esc(t('noSpeech')) + '</p><div class="q-jp">' + esc(kanaRomaji(q.say)) + '</div>') + '</div>';
+        // If this device can't speak Japanese, say so and show the word in romaji instead.
+        var fallback = !canSpeak || quiz.speechFailed || noJapaneseVoice();
+        body += '<div class="dict-controls">' +
+          (canSpeak ? '<button type="button" class="btn btn--blue dict-play" data-act="dict-play">🔊 ' + esc(t('dictPlay')) + '</button>' +
+            '<button type="button" class="btn btn--small" data-act="dict-slow">' + esc(t('dictSlow')) + '</button>' : '') +
+          (fallback && !a ? '<p class="dict-fallback">' + esc(t('noSpeech')) + '</p><div class="q-jp dict-romaji">' + esc(kanaRomaji(q.say)) + '</div>' : '') +
+          '</div>';
       }
       body += '<form class="answer-form" data-act="submit" autocomplete="off">' +
         '<input class="answer-input' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '" id="quiz-answer" name="answer" lang="ja" ' +
@@ -850,10 +917,11 @@
     var input = app.querySelector('.answer-input');
     if (input && !a) input.focus({ preventScroll: true });
 
-    // Play each dictation word once automatically (not again on a language switch).
+    // Play each dictation word once automatically. This runs inside the tap that opened the
+    // question, which browsers require for speech (and not again on a language switch).
     if (q.type === 'dictation' && !a && quiz.spoken !== q) {
       quiz.spoken = q;
-      window.setTimeout(function () { speak(q.say); }, 350);
+      speak(q.say, false);
     }
   }
 
@@ -1046,7 +1114,10 @@
     }
     if (act === 'travel') return travelTo(Number(el.getAttribute('data-ch')));
     if ((act === 'dict-play' || act === 'dict-slow') && view.quiz) {
-      speak(view.quiz.questions[view.quiz.i].say, act === 'dict-slow');
+      var dq = view.quiz;
+      speak(dq.questions[dq.i].say, act === 'dict-slow', function () {
+        if (!dq.speechFailed) { dq.speechFailed = true; render(); }
+      });
       var field = app.querySelector('.answer-input');
       if (field && !view.quiz.answered) field.focus({ preventScroll: true });
       return;
