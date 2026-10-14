@@ -184,26 +184,32 @@ window.MNN_SPRITES = (function () {
       rows: null // filled below from the shrine grid
     },
 
-    // The learner on the journey map: pink sun hat, matcha coat, cream backpack.
+    // The learner on the journey map: honey-brown hair with pink bobbles, green eyes,
+    // white sailor top with a pink bow, pleated pink skirt and a little star hair clip.
     traveler: {
-      pal: { k: INK, h: '#e48aa2', H: '#9bb86a', s: '#f6d9c6', c: '#7fa04f', C: '#557d33', b: '#f0dcae', l: '#6e4a36' },
+      pal: { k: INK, h: '#b98055', H: '#8e5f3c', y: '#f3d36b', b: '#e48aa2', s: '#f8dccb', e: '#5f9e5a',
+             c: '#f2a3a0', w: '#fffaf4', p: '#f2b3c3', P: '#d9637f', l: '#6e4a36' },
       rows: [
-        '...kkkkkk...',
-        '..khhhhhhk..',
-        '.kHHHHHHHHk.',
-        '..kssssssk..',
-        '..kskssksk..',
-        '..kssssssk..',
-        '...kssssk...',
-        '..kccccccbk.',
-        '.kccCccccbbk',
-        '.ksccCcccbbk',
-        '.kkccCcccbbk',
-        '..kccccccbk.',
-        '..kcccccck..',
-        '...kl..lk...',
-        '...kl..lk...',
-        '..kkk..kkk..'
+        '....kkkkkk....',
+        '...khhhhhhk...',
+        '..khhhyhhhhk..',
+        '..khhhhhhhhk..',
+        '.bkhsHssHshkb.',
+        '.bkhsssssshkb.',
+        '..khsesseshk..',
+        '..khcsssschk..',
+        '...khsssshk...',
+        '....kssssk....',
+        '...kpwwwwpk...',
+        '..kwpwPPwpwk..',
+        '..kwwwPPwwwk..',
+        '..kswwwwwwsk..',
+        '...kppppppk...',
+        '..kppPppPppk..',
+        '..kppppppppk..',
+        '....kskksk....',
+        '....kwk.kwk...',
+        '...kPPk.kPPk..'
       ]
     },
 

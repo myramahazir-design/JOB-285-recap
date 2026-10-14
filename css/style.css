@@ -967,3 +967,4 @@ ruby { white-space: nowrap; }
 .map--compact .village-en { font-size: 10px; }
 .map--compact .village-kanji rt { font-size: 8px; }
 .map--compact .village-art { width: calc(var(--art) * 1.1); }
+.traveler .sprite { width: 28px; height: 40px; }
