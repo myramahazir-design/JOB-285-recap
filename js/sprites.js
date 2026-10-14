@@ -115,35 +115,67 @@ window.MNN_SPRITES = (function () {
       ]
     },
 
-    vending: {
-      pal: { k: INK, v: '#3a7bd5', w: '#eaf6ff', a: '#e74c3c', g: '#2ecc71', y: '#f1c40f',
-             o: '#f39c12', s: '#9aa3ad', l: '#7fd3ff' },
+    // Wooden machiya townhouse: tiled roof, plaster upper floor, lattice front, noren curtain.
+    house: {
+      pal: { k: INK, t: '#5d6672', T: '#7d8794', W: '#6e4a2c', w: '#a87a4b', p: '#efe6cf',
+             l: '#4f3622', n: '#2f5a74', N: '#e9e2cc', d: '#3a2a1e', s: '#a19f8e' },
       rows: [
-        'kkkkkkkkkkkk',
-        'kvvvvvvvvvvk',
-        'kwwwwwwwwwwk',
-        'kwaawggwyywk',
-        'kwaawggwyywk',
-        'kwwwwwwwwwwk',
-        'kwoowyywaawk',
-        'kwoowyywaawk',
-        'kwwwwwwwwwwk',
-        'kvvvvvvvvvvk',
-        'kvllvvvvvssk',
-        'kvllvvvvvssk',
-        'kvvvvvvvvvvk',
-        'kvvvvvvvvvvk',
-        'kvkkkkkkkkvk',
-        'kvkkkkkkkkvk',
-        'kvvvvvvvvvvk',
-        'kkkkkkkkkkkk'
+        '.....tttttttttttttt.....',
+        '...tTttTttTttTttTttTt...',
+        '.tttttttttttttttttttttt.',
+        'kkkkkkkkkkkkkkkkkkkkkkkk',
+        '.WppplplplplplplplppppW.',
+        '.WppplplplplplplplppppW.',
+        '.WppppppppppppppppppppW.',
+        'tTttTttTttTttTttTttTttTt',
+        'kkkkkkkkkkkkkkkkkkkkkkkk',
+        '.WlwlwlwlwWnnnnnnnWlwlW.',
+        '.WlwlwlwlwWnnnnnnnWlwlW.',
+        '.WlwlwlwlwWnnnNnnnWlwlW.',
+        '.WlwlwlwlwWnnndnnnWlwlW.',
+        '.WlwlwlwlwWdddddddWlwlW.',
+        '.WlwlwlwlwWdddddddWlwlW.',
+        '.WlwlwlwlwWdddddddWlwlW.',
+        '.WlwlwlwlwWdddddddWlwlW.',
+        '.WlwlwlwlwWdddddddWlwlW.',
+        '.WWWWWWWWWWWWWWWWWWWWWW.',
+        'ssssssssssssssssssssssss'
       ]
     },
 
-    vendingRed: {
-      pal: { k: INK, v: '#d24a3a', w: '#fff4ec', a: '#3a7bd5', g: '#2ecc71', y: '#f1c40f',
-             o: '#f39c12', s: '#9aa3ad', l: '#ffe08a' },
-      rows: null // filled below from the vending grid
+    houseGreen: {
+      pal: { k: INK, t: '#5d6672', T: '#7d8794', W: '#6e4a2c', w: '#a87a4b', p: '#efe6cf',
+             l: '#4f3622', n: '#557a2c', N: '#e9e2cc', d: '#3a2a1e', s: '#a19f8e' },
+      rows: null // filled below from the house grid
+    },
+
+    // Wooden shrine: green copper roof with crossed chigi beams, shimenawa rope with paper
+    // streamers, lattice doors and an offering box.
+    shrine: {
+      pal: { k: INK, c: '#6e4a2c', g: '#5f8a7a', G: '#86ab9c', y: '#e5b13a', r: '#d6c07a',
+             W: '#5a3b24', w: '#94673f', p: '#fbfaef', l: '#4a3220', d: '#2e2219', b: '#b98a55', s: '#a7a796' },
+      rows: [
+        '.c....................c.',
+        '..c..................c..',
+        '...gggggggggggggggggg...',
+        '..gGggGggGggGggGggGggG..',
+        '.ggggggggggyyggggggggggg',
+        'gggggggggggggggggggggggg',
+        'kkkkkkkkkkkkkkkkkkkkkkkk',
+        '.WrrrrrrrrrrrrrrrrrrrrW.',
+        '.WwwpwwwwpwwwwpwwwwpwwW.',
+        '.WwwpwwwwpwwwwpwwwwpwwW.',
+        '.WlwlwlwlWddddWlwlwlwlW.',
+        '.WlwlwlwlWddddWlwlwlwlW.',
+        '.WlwlwlwlWddddWlwlwlwlW.',
+        '.WlwlwlwlWddddWlwlwlwlW.',
+        '.WlwlwlwlWbbbbWlwlwlwlW.',
+        '.WlwlwlwlWbbbbWlwlwlwlW.',
+        '.WWWWWWWWWWWWWWWWWWWWWW.',
+        '..ssssssssssssssssssss..',
+        '.ssssssssssssssssssssss.',
+        'ssssssssssssssssssssssss'
+      ]
     },
 
     lantern: {
@@ -206,7 +238,7 @@ window.MNN_SPRITES = (function () {
     }
   };
 
-  SPRITES.vendingRed.rows = SPRITES.vending.rows;
+  SPRITES.houseGreen.rows = SPRITES.house.rows;
 
   var CHARACTERS = {
     tanuki: { en: 'Tanuki-sensei', zh: '狸猫老师', jp: 'たぬき先生' },
@@ -242,25 +274,25 @@ window.MNN_SPRITES = (function () {
 
   // The street strip shown at the bottom of every screen.
   function scene() {
-    var W = 160, H = 26, ground = 26;
+    var W = 184, H = 26, ground = 26;
     var items = [
-      ['torii', 4, ground - 16],
-      ['stoneLantern', 31, ground - 11],
-      ['sign', 43, ground - 18],
-      ['vending', 51, ground - 18],
-      ['vendingRed', 64, ground - 18],
-      ['lantern', 86, 2],
-      ['lantern', 100, 2],
-      ['sign', 116, ground - 18],
-      ['stoneLantern', 124, ground - 11],
-      ['torii', 134, ground - 16]
+      ['shrine', 2, ground - 20],
+      ['stoneLantern', 28, ground - 11],
+      ['torii', 38, ground - 16],
+      ['house', 66, ground - 20],
+      ['sign', 92, ground - 18],
+      ['houseGreen', 100, ground - 20],
+      ['lantern', 128, 2],
+      ['lantern', 146, 2],
+      ['stoneLantern', 136, ground - 11],
+      ['shrine', 158, ground - 20]
     ];
     var g = '';
     items.forEach(function (it) {
       g += '<g transform="translate(' + it[1] + ' ' + it[2] + ')">' + rects(SPRITES[it[0]]) + '</g>';
     });
     // Rope the lanterns hang from, then a stone path.
-    g += '<rect x="80" y="1" width="34" height="1" fill="' + INK + '"/>';
+    g += '<rect x="124" y="1" width="34" height="1" fill="' + INK + '"/>';
     // The stone path is drawn in CSS so it can span the full window width.
     return '<svg class="scene" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMax meet" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' + g + '</svg>';
   }
