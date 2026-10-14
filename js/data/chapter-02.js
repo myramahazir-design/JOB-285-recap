@@ -2,7 +2,24 @@
 // Grammar quiz: story practice built from the practice pages (練習A/B/C, 問題).
 MNN.registerChapter({
   id: 2,
-  title: { jp: 'ほんの気持ちです', en: "It's just a small token", zh: '一点儿心意' },
+  title: { jp: 'これからお世話になります', en: 'Thank you in advance for your kindness', zh: '今后请多关照' },
+
+  // The lesson's 会話, shown first in the Conversation section.
+  dialogue: {
+    title: 'これから お世話に なります',
+    parts: [
+      [
+        { who: '山田一郎', jp: 'はい。 どなたですか。', en: 'Yes? Who is it?', zh: '来了。请问是哪位？' },
+        { who: 'サントス', jp: '408の サントスです。', en: 'It’s Santos from 408.', zh: '我是408的桑托斯。' }
+      ],
+      [
+        { who: 'サントス', jp: 'こんにちは。 サントスです。\nこれから お世話に なります。\nどうぞ よろしく お願いします。', en: 'Hello. I’m Santos.\nThank you in advance for your kindness.\nPleased to meet you.', zh: '您好。我是桑托斯。\n今后要承蒙您关照了。\n请多关照。' },
+        { who: '山田一郎', jp: 'こちらこそ よろしく お願いします。', en: 'Pleased to meet you, too.', zh: '我才要请您多关照。' },
+        { who: 'サントス', jp: 'あのう、これ、コーヒーです。 どうぞ。', en: 'Er, this is some coffee. Please have it.', zh: '那个，这是咖啡。请收下。' },
+        { who: '山田一郎', jp: 'どうも ありがとう ございます。', en: 'Thank you very much.', zh: '非常感谢。' }
+      ]
+    ]
+  },
 
   vocab: [
     // ----- Words -----
@@ -69,6 +86,10 @@ MNN.registerChapter({
       note: { en: 'A small “oh!” when you suddenly notice or remember something.', zh: '突然注意到或想起什么时轻轻说的“啊！”。' } },
 
     // ----- Conversation phrases -----
+    { group: 'conversation', jp: 'はい。 どなたですか。', en: 'Yes? Who is it?', zh: '来了。请问是哪位？',
+      note: { en: 'Answer the door or the intercom with this when someone rings.', zh: '有人按门铃时，应门或接对讲机时说。' } },
+    { group: 'conversation', jp: 'こんにちは。', en: 'Hello. / Good afternoon.', zh: '你好。／下午好。',
+      note: { en: 'The everyday daytime greeting, like when you knock on a neighbour’s door.', zh: '白天常用的问候，比如去敲邻居的门时。' } },
     { group: 'conversation', jp: 'これから おせわに なります。', kanji: 'これから お世話に なります。', en: 'Thank you in advance for your kindness.', zh: '今后要承蒙您关照了。',
       note: { en: 'Said when you start relying on someone, e.g. a new neighbour or colleague.', zh: '开始受人照顾时说，比如对新邻居或新同事。' } },
     { group: 'conversation', jp: 'こちらこそ ［どうぞ］ よろしく ［おねがいします］。', kanji: 'こちらこそ ［どうぞ］ よろしく ［お願いします］。', en: 'Pleased to meet you, too.', zh: '我才要请您多关照。',
