@@ -76,27 +76,74 @@
     });
   }
 
-  // Japanese text: escapes, supports {漢字|かな} furigana and highlights （　） blanks.
+  // Japanese text: escapes, adds readings (furigana / romaji) and highlights （　） blanks.
   // A fill like 'は … か' fills several blanks in turn.
-  function jp(s, fill) {
+  function jp(s, fill, mode) {
     var fills = fill == null ? null : String(fill).split(' … ');
     var n = 0;
-    var html = readings(esc(P(s))).replace(/\n/g, '<br>');
+    var html = readings(esc(P(s)), mode || 'ja').replace(/\n/g, '<br>');
     return html.replace(/[（(]\s*[　 ]?\s*[）)]/g, function () {
       return fills
-        ? '<span class="blank blank--filled">' + readings(esc(fills[Math.min(n++, fills.length - 1)])) + '</span>'
+        ? '<span class="blank blank--filled">' + readings(esc(fills[Math.min(n++, fills.length - 1)]), 'ja') + '</span>'
         : '<span class="blank">（　）</span>';
     });
   }
 
-  // Adds readings above escaped text: {漢字|かな} becomes furigana, and every katakana
-  // word gets its romaji in small type (ミラー -> mirā).
-  var KATAKANA = /\{([^|}]+)\|([^}]+)\}|[\u30A1-\u30FA\u30FC]+/g;
-  function readings(html) {
-    return html.replace(KATAKANA, function (m, base, reading) {
-      if (base) return '<ruby>' + base + '<rt>' + reading + '</rt></ruby>';
-      if (/^ー+$/.test(m)) return m;
-      return '<ruby class="kata">' + m + '<rt class="romaji">' + ROMAJI(m) + '</rt></ruby>';
+  // Translated content ({en, zh}) or a Japanese string. Chinese sentences must not get
+  // Japanese readings over their hanzi, so in Chinese only the Japanese inside them does:
+  // anything quoted in 「」 and kanji written next to kana (e.g. 社員です).
+  function tj(v) {
+    if (typeof v === 'string') return jp(v);
+    var text = tx(v);
+    if (lang !== 'zh') return jp(text);
+    return text.split(/(「[^」]*」)/).map(function (part) {
+      return jp(part, null, part.charAt(0) === '「' ? 'ja' : 'zh');
+    }).join('');
+  }
+
+  // Readings for every kanji word the app uses. Longest match wins; {漢字|かな} in the
+  // content still overrides. 人 is decided by context (アメリカ人 → じん, あの人 → ひと).
+  var KANJI_READINGS = {
+    '第一課': 'だいいっか', '第二課': 'だいにか', '第三課': 'だいさんか', '第四課': 'だいよんか',
+    '第五課': 'だいごか', '第六課': 'だいろっか', '第七課': 'だいななか', '第八課': 'だいはっか',
+    '日本語': 'にほんご', '日本': 'にほん', '中国': 'ちゅうごく', '韓国': 'かんこく', '英語': 'えいご',
+    '会社員': 'かいしゃいん', '銀行員': 'ぎんこういん', '研究者': 'けんきゅうしゃ', '社員': 'しゃいん',
+    '会社': 'かいしゃ', '銀行': 'ぎんこう', '医者': 'いしゃ', '教師': 'きょうし', '先生': 'せんせい',
+    '学生': 'がくせい', '大学': 'だいがく', '病院': 'びょういん', '神戸': 'こうべ', '富士': 'ふじ',
+    '電気': 'でんき', '電車': 'でんしゃ', '甲子園': 'こうしえん',
+    '山田': 'やまだ', '田中': 'たなか', '佐藤': 'さとう', '鈴木': 'すずき',
+    '名前': 'なまえ', '名刺': 'めいし', '失礼': 'しつれい', '世話': 'せわ', '土産': 'みやげ',
+    '何時': 'なんじ', '何歳': 'なんさい', '何': 'なん', '歳': 'さい',
+    '辞書': 'じしょ', '雑誌': 'ざっし', '新聞': 'しんぶん', '手帳': 'てちょう', '鉛筆': 'えんぴつ',
+    '時計': 'とけい', '傘': 'かさ', '車': 'くるま', '机': 'つくえ', '本': 'ほん', '語': 'ご', '方': 'かた',
+    '気持': 'きも', '頑張': 'がんば', '初': 'はじ', '来': 'き', '行': 'い', '違': 'ちが', '願': 'ねが',
+    '練習': 'れんしゅう', '問題': 'もんだい', '会話': 'かいわ', '例': 'れい', '人': 'ひと'
+  };
+  var KANJI_KEYS = Object.keys(KANJI_READINGS).sort(function (a, b) { return b.length - a.length; });
+  var READING_RE = new RegExp('\\{([^|}]+)\\|([^}]+)\\}|(' + KANJI_KEYS.join('|') + ')|([\\u30A1-\\u30FA\\u30FC]+)', 'g');
+  var KANA = /[ぁ-ゖァ-ヺー]/;
+
+  function ruby(base, reading, cls) {
+    return '<ruby' + (cls ? ' class="' + cls + '"' : '') + '>' + base +
+      '<rt' + (cls ? ' class="romaji"' : '') + '>' + reading + '</rt></ruby>';
+  }
+
+  // mode 'ja': all readings. mode 'zh': kanji readings only next to kana (see tj).
+  function readings(html, mode) {
+    return html.replace(READING_RE, function (m, base, reading, kanji, kata, offset, str) {
+      if (base) return ruby(base, reading);
+      if (kanji) {
+        var before = str.charAt(offset - 1), after = str.charAt(offset + m.length);
+        if (mode === 'zh' && !KANA.test(before) && !KANA.test(after)) return m;
+        if (m === '人') {
+          // After a country name (katakana, 国, 日本) or 〜 it's the suffix じん.
+          var jin = /[ァ-ヺー〜～国]/.test(before) || str.slice(offset - 2, offset) === '日本';
+          return ruby(m, jin ? 'じん' : 'ひと');
+        }
+        return ruby(m, KANJI_READINGS[m]);
+      }
+      if (/^ー+$/.test(kata)) return m;
+      return ruby(kata, ROMAJI(kata), 'kata');
     });
   }
 
@@ -218,7 +265,7 @@
     var cards = Object.keys(DATA.chapters).sort(function (a, b) { return a - b; }).map(function (id) {
       var ch = DATA.chapters[id];
       return '<a class="sign sign--' + (ch.id % 4) + '" href="#/ch/' + ch.id + '">' +
-        '<span class="sign-kanji">第' + kanjiNum(ch.id) + '課</span>' +
+        '<span class="sign-kanji">' + jp('第' + kanjiNum(ch.id) + '課') + '</span>' +
         '<span class="sign-num">' + esc(t('lessonN', ch.id)) + '</span>' +
         '<span class="sign-sub" lang="ja">' + jp(ch.title.jp) + '</span>' +
         (hasContent(ch) ? '' : '<span class="badge badge--soft">' + esc(t('comingSoon')) + '</span>') +
@@ -237,7 +284,7 @@
   // ---------- Chapter menu ----------
 
   function quizLength(ch, mode) {
-    if (mode === 'grammar-quiz') return ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length;
+    if (mode === 'grammar-quiz') return Math.min(MAX_QUESTIONS, ch.grammarQuiz.filter(function (q) { return q.type !== 'scene'; }).length);
     var n = ch.vocab.filter(function (v) { return v.group !== 'names' && v.en; }).length;
     return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
   }
@@ -264,7 +311,7 @@
 
     app.innerHTML = '<section class="screen">' +
       '<div class="toprow">' + backLink('#/', t('allLessons')) + '</div>' +
-      '<div class="chapter-head"><div class="kanji">第' + kanjiNum(ch.id) + '課</div>' +
+      '<div class="chapter-head"><div class="kanji">' + jp('第' + kanjiNum(ch.id) + '課') + '</div>' +
       '<div class="title-jp" lang="ja">' + jp(ch.title.jp) + '</div>' +
       '<div class="title-tr">' + esc(tx(ch.title)) + '</div></div>' +
       guide('neko', esc(t('chapterGreeting'))) +
@@ -303,9 +350,9 @@
       '<div class="word-jp" lang="ja">' + jp(v.jp) + '</div>' +
       (v.kanji ? '<div class="word-kanji" lang="ja">' + jp(v.kanji) + '</div>' : '') +
       '<div class="word-divider"></div>' +
-      '<div class="word-meaning">' + jp(tx(v)) + '</div>' +
+      '<div class="word-meaning">' + tj({ en: v.en, zh: v.zh }) + '</div>' +
       (canSpeak ? '<button class="btn btn--small btn--blue listen" type="button" data-act="speak">🔊 ' + esc(t('listen')) + '</button>' : '');
-    var bubble = v.note ? jp(tx(v.note)) : esc(view.index === 0 ? t('vocabIntro') : t('vocabTip'));
+    var bubble = v.note ? tj(v.note) : esc(view.index === 0 ? t('vocabIntro') : t('vocabTip'));
     studyFrame(ch, 'vocab', ch.vocab, card, bubble);
   }
 
@@ -318,13 +365,13 @@
         '<div class="example-tr">' + esc(tx(ex)).replace(/\n/g, '<br>') + '</div></div>';
     }).join('');
     var notes = (g.notes || []).map(function (nt) {
-      return '<li>' + jp(tx(nt)) + '</li>';
+      return '<li>' + tj(nt) + '</li>';
     }).join('');
-    var card = '<div class="pattern" lang="ja">' + esc(g.pattern) + '</div>' +
+    var card = '<div class="pattern" lang="ja">' + jp(g.pattern) + '</div>' +
       '<div class="pattern-title">' + esc(tx(g.title)) + '</div>' +
       (notes ? '<ul class="notes"><li class="notes-head">' + esc(t('noteLabel')) + '</li>' + notes + '</ul>' : '') +
       (examples ? '<div class="examples"><h3>' + esc(t('examples')) + '</h3>' + examples + '</div>' : '');
-    studyFrame(ch, 'grammar', ch.grammar, card, jp(tx(g.explain)));
+    studyFrame(ch, 'grammar', ch.grammar, card, tj(g.explain));
   }
 
   function lessonDone(ch, mode) {
@@ -447,13 +494,20 @@
     });
   }
 
+  // Every quiz has at most MAX_QUESTIONS questions (story scenes don't count).
+  var MAX_QUESTIONS = 20;
+  function capQuestions(list) {
+    var count = 0;
+    return list.filter(function (q) { return q.type === 'scene' || ++count <= MAX_QUESTIONS; });
+  }
+
   function buildQuiz(ch, mode) {
     if (mode === 'grammar-quiz') {
       // A quiz with story scenes is played in its authored order.
       var story = ch.grammarQuiz.some(function (q) { return q.type === 'scene'; });
-      return (story ? ch.grammarQuiz : shuffle(ch.grammarQuiz)).map(normalizeQuestion);
+      return capQuestions(story ? ch.grammarQuiz : shuffle(ch.grammarQuiz)).map(normalizeQuestion);
     }
-    if (ch.vocabQuiz.length) return shuffle(ch.vocabQuiz).map(normalizeQuestion);
+    if (ch.vocabQuiz.length) return capQuestions(shuffle(ch.vocabQuiz)).map(normalizeQuestion);
     return generateVocabQuiz(ch.vocab);
   }
 
@@ -479,7 +533,7 @@
   function renderCard(c) {
     var rows = [['country', c.country], ['job', c.job], ['org', c.org], ['age', c.age != null ? c.age + '歳' : null]]
       .filter(function (r) { return r[1]; });
-    return '<div class="namecard"><div class="namecard-top">名刺</div>' +
+    return '<div class="namecard"><div class="namecard-top">' + jp('名刺') + '</div>' +
       '<div class="namecard-name" lang="ja">' + jp(c.name) + '</div><dl>' +
       rows.map(function (r) {
         return '<div><dt>' + esc(t('cardLabels')[r[0]]) + '</dt><dd lang="ja">' + jp(String(r[1])) + '</dd></div>';
@@ -494,7 +548,7 @@
         : '<span class="talk-initial" lang="ja">' + esc(l.who.charAt(0)) + '</span>';
       var label = you ? t('you') : sprite ? tx(sprite) : l.who;
       return '<div class="talk-line' + (you ? ' talk-line--you' : '') + '">' + avatar +
-        '<div class="talk-bubble"><span class="talk-who">' + jp(label) + '</span>' +
+        '<div class="talk-bubble"><span class="talk-who">' + (you || sprite ? esc(label) : jp(label)) + '</span>' +
         '<span class="talk-text" lang="ja">' + jp(l.jp, fill) + '</span></div></div>';
     }).join('') + '</div>';
   }
@@ -524,7 +578,7 @@
       SPR.svg(q.who, 'scene-sprite') +
       '<div class="bubble px scene-bubble"><span class="bubble-name">' + esc(tx(SPR.CHARACTERS[q.who])) + '</span>' +
       q.lines.slice(0, quiz.line + 1).map(function (l, idx) {
-        return '<p class="bubble-text' + (idx === quiz.line ? ' is-new' : '') + '">' + jp(tx(l)) + '</p>';
+        return '<p class="bubble-text' + (idx === quiz.line ? ' is-new' : '') + '">' + tj(l) + '</p>';
       }).join('') + '</div>' +
       '<div class="feedback"><button class="btn btn--primary" type="button" data-act="scene-next">' +
       esc(last ? t('letsGo') : '▶') + '</button></div></article></section>';
@@ -543,7 +597,7 @@
     var a = quiz.answered; // null until the current question is answered
     var character = GUIDE[mode];
 
-    var bubble = jp(tx(q.prompt));
+    var bubble = tj(q.prompt);
     if (a && a.correct) {
       bubble = '<strong>' + esc(a.streak >= 3 ? t('streakLine', a.streak) : P(t('correctLines')[a.cheer])) + '</strong>';
     }
@@ -579,7 +633,7 @@
           else if (a.choiceIdx === idx) cls = ' is-wrong';
         }
         return '<button type="button" class="btn choice' + cls + '" data-act="choose" data-idx="' + idx + '"' +
-          (a ? ' disabled' : '') + ' lang="' + (typeof c.value === 'string' ? 'ja' : lang) + '">' + jp(tx(c.value)) + '</button>';
+          (a ? ' disabled' : '') + ' lang="' + (typeof c.value === 'string' ? 'ja' : lang) + '">' + tj(c.value) + '</button>';
       }).join('') + '</div>';
     } else {
       body += '<form class="answer-form" data-act="submit" autocomplete="off">' +
@@ -592,7 +646,7 @@
 
     // After a correct answer, show the explanation too: knowing *why* makes it stick.
     if (a && a.correct && q.explanation) {
-      body += '<div class="tip"><span class="tip-head">' + esc(t('explanation')) + '</span>' + jp(tx(q.explanation)) + '</div>';
+      body += '<div class="tip"><span class="tip-head">' + esc(t('explanation')) + '</span>' + tj(q.explanation) + '</div>';
     }
 
     app.innerHTML = '<section class="screen">' + quizTop(ch, quiz) +
@@ -655,21 +709,21 @@
     var character = GUIDE[route.mode];
 
     openModal(function () {
-      var correctText = q.type === 'input' ? q.answers.join(' / ')
-        : q.type === 'order' ? q.correctText
-        : tx(q.choices.filter(function (c) { return c.correct; })[0].value);
-      if (q.type === 'choice') given = tx(q.choices[choiceIdx].value);
+      var correctHtml = q.type === 'input' ? jp(q.answers.join(' / '))
+        : q.type === 'order' ? jp(q.correctText)
+        : tj(q.choices.filter(function (c) { return c.correct; })[0].value);
+      var givenHtml = q.type === 'choice' ? tj(q.choices[choiceIdx].value) : jp(given || t('emptyAnswer'));
       return '<div class="modal-head">' + SPR.svg(character) +
       '<div><div class="modal-who">' + esc(tx(SPR.CHARACTERS[character])) + '</div>' +
       '<h2 class="modal-title" id="modal-title">' + esc(t('wrongTitle')) + '</h2></div></div>' +
       (q.jp ? '<div class="q-jp" lang="ja" style="font-size:19px">' + jp(q.jp, fillText(q)) + '</div>' : '') +
       (q.translation ? '<div class="q-tr">' + esc(tx(q.translation)) + '</div>' : '') +
       '<div class="answer-row answer-row--wrong"><span class="lbl">' + esc(t('yourAnswer')) + '</span>' +
-      '<span class="val" lang="ja">' + jp(given || t('emptyAnswer')) + '</span></div>' +
+      '<span class="val" lang="ja">' + givenHtml + '</span></div>' +
       '<div class="answer-row answer-row--right"><span class="lbl">' + esc(t('correctAnswer')) + '</span>' +
-      '<span class="val" lang="ja">' + jp(correctText) + '</span></div>' +
-      (why ? '<div class="explain-block"><h3>' + esc(t('whyWrong')) + '</h3><p>' + jp(tx(why)) + '</p></div>' : '') +
-      (q.explanation ? '<div class="explain-block"><h3>' + esc(t('explanation')) + '</h3><p>' + jp(tx(q.explanation)) + '</p></div>' : '') +
+      '<span class="val" lang="ja">' + correctHtml + '</span></div>' +
+      (why ? '<div class="explain-block"><h3>' + esc(t('whyWrong')) + '</h3><p>' + tj(why) + '</p></div>' : '') +
+      (q.explanation ? '<div class="explain-block"><h3>' + esc(t('explanation')) + '</h3><p>' + tj(q.explanation) + '</p></div>' : '') +
       (requeued ? '<p class="comeback">' + esc(t('comeBack')) + '</p>' : '') +
       '<div class="modal-actions"><button class="btn btn--primary" type="button" data-act="close-modal">' + esc(t('gotIt')) + '</button></div>';
     }, { closable: true, className: 'modal--wrong' });

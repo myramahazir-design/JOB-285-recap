@@ -80,7 +80,8 @@ MNN.registerChapter({
 
 Notes on the format:
 
-- Japanese text can use `{漢字|かんじ}` to show furigana.
+- Every kanji gets furigana automatically from the reading list `KANJI_READINGS` in `js/app.js`. When a new lesson adds kanji words, add them there. You can also write `{漢字|かんじ}` in the content to set a reading directly.
+- Each quiz shows at most 20 questions. Story scenes don't count toward that.
 - Vocab items can have a `group`: `words`, `expressions`, `countries` or `names`. Items in `names` (textbook company and school names) appear in the review but not in the quiz.
 - Grammar items can have `notes`: a list of short points shown under the pattern.
 - Any question can have a `translation`, shown under the Japanese.

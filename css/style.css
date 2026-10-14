@@ -829,3 +829,8 @@ rt.romaji {
 rt { font-size: max(9px, .45em); }
 rt.romaji { font-size: max(10px, .4em); }
 ruby { white-space: nowrap; }
+/* Readings on coloured backgrounds take the text colour so they stay legible. */
+.logo rt, .chapter-head rt, .namecard-top rt, .pattern rt, .btn--primary rt, .scene-title rt, .bubble-name rt, .talk-who rt {
+  color: inherit;
+  opacity: .85;
+}

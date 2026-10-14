@@ -204,18 +204,6 @@ MNN.registerChapter({
 
     // ----- Part 1: warm-up at the shrine (練習A, 問題5) -----
     {
-      prompt: { en: 'Let’s start simple. Choose the particle.', zh: '先从简单的开始。请选择助词。' },
-      jp: 'わたし（　）マイク・ミラーです。',
-      choices: ['は', 'も', 'の', 'か'],
-      answer: 'は',
-      explanation: { en: 'は marks “I” as the topic: “As for me, I am Mike Miller.”', zh: 'は表示主题“我”：“我是麦克·米勒。”' },
-      why: {
-        'も': { en: 'も means “also”. Nobody else was mentioned before, so there is nothing to be “also”.', zh: 'も表示“也”。前面没有提到别人，所以不能用“也”。' },
-        'の': { en: 'の joins two nouns, as in IMCの 社員. It can’t mark the topic.', zh: 'の连接两个名词，如IMCの 社員，不能表示主题。' },
-        'か': { en: 'か goes at the end of a sentence to make a question, not after the topic.', zh: 'か放在句尾表示疑问，不能放在主题后面。' }
-      }
-    },
-    {
       prompt: { en: 'Kitsune-san points at the は in this sentence. How do you read it?', zh: '狐狸小姐指着句中的は。它怎么读？' },
       jp: 'わたしは マイク・ミラーです。',
       choices: ['wa', 'ha', 'o', 'a'],
@@ -230,18 +218,6 @@ MNN.registerChapter({
       translation: { en: 'Ms. Lee is not a student.', zh: '李女士不是学生。' },
       pieces: ['イーさんは', 'がくせい', 'じゃ', 'ありません。'],
       explanation: { en: 'A negative sentence keeps the shape of N₁ は N₂ です. Just swap です for じゃ ありません.', zh: '否定句的结构和N₁はN₂です一样，只要把です换成じゃ ありません。' }
-    },
-    {
-      prompt: { en: 'Choose the particle.', zh: '请选择助词。' },
-      jp: 'サントスさんは ブラジル人です。\nマリアさん（　）ブラジル人です。',
-      choices: ['も', 'は', 'の', 'か'],
-      answer: 'も',
-      explanation: { en: 'Maria is ALSO Brazilian, just like Mr. Santos, so use も.', zh: '玛丽亚也和桑托斯先生一样是巴西人，所以用も。' },
-      why: {
-        'は': { en: 'は is grammatical, but you lose “also”. Mr. Santos was just described the same way, so も is the natural choice.', zh: 'は在语法上可以，但失去了“也”的意思。前面刚说过桑托斯先生是巴西人，所以用も更自然。' },
-        'の': { en: 'マリアさんの ブラジル人 would mean “Maria’s Brazilian”, which makes no sense.', zh: 'マリアさんの ブラジル人的意思是“玛丽亚的巴西人”，说不通。' },
-        'か': { en: 'か makes a question, and it goes at the end of the sentence.', zh: 'か表示疑问，要放在句尾。' }
-      }
     },
     {
       prompt: { en: 'Two blanks this time! Choose the pair that fits.', zh: '这次有两个空！请选择合适的一组。' },
@@ -303,16 +279,8 @@ MNN.registerChapter({
     },
     {
       card: CARDS.thawaphon,
-      prompt: { en: 'Is this sentence about the card correct?', zh: '关于这张名片，这句话正确吗？' },
-      jp: 'タワポンさんは 先生です。',
-      choices: TF, fixedOrder: true, answer: 1,
-      explanation: { en: 'Mr. Thawaphon is a 学生 (student), not a 先生 (teacher).', zh: '塔瓦朋先生是学生，不是老师。' },
-      why: { 0: { en: 'Look at the job on his card: 学生 (student).', zh: '看他名片上的职业：学生。' } }
-    },
-    {
-      card: CARDS.thawaphon,
       type: 'input',
-      prompt: { en: 'So fix it! Make the sentence negative.', zh: '那就改正它！请改成否定句。' },
+      prompt: { en: 'Mr. Thawaphon is a student, not a teacher. Make the sentence negative.', zh: '塔瓦朋先生是学生，不是老师。请改成否定句。' },
       jp: 'タワポンさんは 先生（　）。',
       answers: ['じゃありません', 'ではありません'],
       explanation: { en: 'じゃ ありません is the negative of です. では ありません is the formal version.', zh: 'じゃ ありません是です的否定形式，では ありません是正式的说法。' },
@@ -333,19 +301,6 @@ MNN.registerChapter({
         'はい、銀行員じゃ ありません。': { en: 'はい means “yes”, but じゃ ありません means “is not”. They contradict each other.', zh: 'はい表示“是”，じゃ ありません表示“不是”，前后矛盾。' },
         'いいえ、銀行員です。': { en: 'いいえ means “no”, but then she says she IS a bank employee. Mixed signals!', zh: 'いいえ表示“不是”，后面却说自己是银行职员，前后矛盾。' },
         'はい、山田さんです。': { en: 'Two mistakes: you asked about her job, not her name, and nobody puts さん on their own name.', zh: '两处错误：问的是职业而不是名字；而且不能在自己的名字后面加さん。' }
-      }
-    },
-    {
-      card: CARDS.schmidt,
-      prompt: { en: 'Read the card. How does Mr. Schmidt reply?', zh: '看名片。施密特先生会怎么回答？' },
-      talk: [{ who: 'you', jp: 'シュミットさんは アメリカ人ですか。' }, { who: 'シュミット', jp: '（　）' }],
-      choices: ['いいえ、アメリカ人じゃ ありません。', 'はい、アメリカ人です。', 'いいえ、アメリカ人です。', 'いいえ、ドイツ人じゃ ありません。'],
-      answer: 'いいえ、アメリカ人じゃ ありません。',
-      explanation: { en: 'Mr. Schmidt is from ドイツ (Germany), so he says いいえ and negates the noun from the question: アメリカ人じゃ ありません.', zh: '施密特先生来自德国，所以回答いいえ，并否定问句中的名词：アメリカ人じゃ ありません。' },
-      why: {
-        'はい、アメリカ人です。': { en: 'His card says ドイツ (Germany), not アメリカ.', zh: '他的名片上写的是ドイツ（德国），不是アメリカ。' },
-        'いいえ、アメリカ人です。': { en: 'いいえ (no) followed by “I am American” contradicts itself.', zh: 'いいえ（不是）后面却说“是美国人”，前后矛盾。' },
-        'いいえ、ドイツ人じゃ ありません。': { en: 'He IS German. This says he is not.', zh: '他就是德国人，这句话却说他不是。' }
       }
     },
     {
@@ -401,18 +356,6 @@ MNN.registerChapter({
         'さくらだいがく': { en: 'Close! That’s the other university. Karina’s card says 富士大学 (ふじだいがく).', zh: '差一点！那是另一所大学。卡丽娜的名片上写的是富士大学（ふじだいがく）。' },
         'さくら大学': { en: 'Close! That’s the other university. Karina’s card says 富士大学 (ふじだいがく).', zh: '差一点！那是另一所大学。卡丽娜的名片上写的是富士大学（ふじだいがく）。' },
         'インドネシア': { en: 'That’s her country. The blank is the school she belongs to.', zh: '那是她的国家。这里要填她所属的学校。' }
-      }
-    },
-    {
-      card: CARDS.santos,
-      type: 'input',
-      prompt: { en: 'Ask Mr. Santos his age. Type the question word.', zh: '问桑托斯先生的年龄。请输入疑问词。' },
-      talk: [{ who: 'you', jp: 'サントスさんは（　）ですか。' }, { who: 'サントス', jp: '39さいです。' }],
-      answers: ['おいくつ', 'なんさい', '何歳'],
-      explanation: { en: 'なんさい and the more polite おいくつ both ask someone’s age. For an adult like Mr. Santos, おいくつ is the politer choice.', zh: 'なんさい和更礼貌的おいくつ都可以问年龄。对桑托斯先生这样的成年人，用おいくつ更礼貌。' },
-      why: {
-        'だれ': { en: 'だれ asks “who”, but he answered with his age.', zh: 'だれ问的是“谁”，但他回答的是年龄。' },
-        'どなた': { en: 'どなた asks “who”, but he answered with his age.', zh: 'どなた问的是“谁”，但他回答的是年龄。' }
       }
     },
 
@@ -473,34 +416,6 @@ MNN.registerChapter({
       ],
       explanation: { en: 'A self-introduction has a set shape: 初めまして → your name → your company or school → どうぞ よろしく お願いします.', zh: '自我介绍有固定的结构：初めまして→名字→公司或学校→どうぞ よろしく お願いします。' }
     },
-    {
-      prompt: { en: 'Mr. Tanaka replies. Which reply is natural?', zh: '田中先生回应。哪个回答比较自然？' },
-      talk: [{ who: 'ミラー', jp: '……どうぞ よろしく お願いします。' }, { who: '田中', jp: '（　）' }],
-      choices: ['田中です。よろしく お願いします。', '田中さんです。よろしく お願いします。', 'あなたは 田中です。', '田中じゃ ありません。'],
-      answer: '田中です。よろしく お願いします。',
-      explanation: { en: 'Mr. Tanaka gives his own name (no さん) and returns the よろしく お願いします.', zh: '田中先生说出自己的名字（不加さん），并回一句よろしく お願いします。' },
-      why: {
-        '田中さんです。よろしく お願いします。': { en: 'He’s talking about himself, so no さん!', zh: '他在说自己，所以不加さん！' },
-        'あなたは 田中です。': { en: 'This means “You are Tanaka”.', zh: '这句话的意思是“你是田中”。' },
-        '田中じゃ ありません。': { en: 'This means “I’m not Tanaka”. He is!', zh: '这句话的意思是“我不是田中”，可他就是田中！' }
-      }
-    },
-    {
-      prompt: { en: 'When do you say どうぞ よろしく お願いします？', zh: '什么时候说どうぞ よろしく お願いします？' },
-      choices: [
-        { en: 'At the end of a self-introduction', zh: '在自我介绍的最后' },
-        { en: 'At the very start, before your name', zh: '在最开始，说名字之前' },
-        { en: 'When asking someone’s name', zh: '问别人名字的时候' },
-        { en: 'When correcting someone', zh: '纠正别人的时候' }
-      ],
-      answer: 0,
-      explanation: { en: 'It literally means “Please be nice to me”, and it closes your self-introduction. 初めまして is what opens it.', zh: '它的字面意思是“请多关照”，用来结束自我介绍。开头说的是初めまして。' },
-      why: {
-        1: { en: 'That’s 初めまして. よろしく comes at the end.', zh: '开头说的是初めまして，よろしく放在最后。' },
-        2: { en: 'To ask a name, use 失礼ですが、お名前は？', zh: '问名字要用失礼ですが、お名前は？' },
-        3: { en: 'To correct someone, use いいえ、〜です。', zh: '纠正别人用いいえ、〜です。' }
-      }
-    },
 
     {
       type: 'scene', who: 'neko',
@@ -513,19 +428,7 @@ MNN.registerChapter({
 
     // ----- Part 4: about you (問題1, 問題6) -----
     {
-      prompt: { en: 'Imagine you’re not a teacher. How do you answer Neko-chan?', zh: '假设你不是老师。你该怎么回答小猫？' },
-      talk: [{ who: 'neko', jp: '{name}さんは 先生ですか。' }, { who: 'you', jp: '（　）' }],
-      choices: ['いいえ、先生じゃ ありません。', 'いいえ、{name}さんじゃ ありません。', 'いいえ、先生です。', 'はい、先生じゃ ありません。'],
-      answer: 'いいえ、先生じゃ ありません。',
-      explanation: { en: 'Say いいえ, then negate the noun from the question: 先生じゃ ありません. You can add [わたしは] at the start, but it’s usually left out.', zh: '先说いいえ，再否定问句中的名词：先生じゃ ありません。开头可以加［わたしは］，但通常省略。' },
-      why: {
-        'いいえ、{name}さんじゃ ありません。': { en: 'That says “I’m not {name}-san”, which is about your name, not your job. And never add さん to your own name!', zh: '这句话的意思是“我不是{name}さん”，说的是名字而不是职业，而且不能在自己的名字后面加さん！' },
-        'いいえ、先生です。': { en: 'いいえ (no), followed by “I’m a teacher”, contradicts itself.', zh: 'いいえ（不是）后面却说“是老师”，前后矛盾。' },
-        'はい、先生じゃ ありません。': { en: 'はい (yes) with “I’m not a teacher” contradicts itself.', zh: 'はい（是）后面却说“不是老师”，前后矛盾。' }
-      }
-    },
-    {
-      prompt: { en: 'Now imagine you ARE a teacher. Which reply is right?', zh: '现在假设你是老师。哪个回答是对的？' },
+      prompt: { en: 'Imagine you’re a teacher. Which reply is right?', zh: '假设你是老师。哪个回答是对的？' },
       talk: [{ who: 'tanuki', jp: '{name}さんは 学生ですか。' }, { who: 'you', jp: '（　）' }],
       choices: ['いいえ、教師です。', 'いいえ、先生です。', 'はい、教師です。', 'いいえ、教師さんです。'],
       answer: 'いいえ、教師です。',
