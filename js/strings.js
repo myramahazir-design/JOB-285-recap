@@ -25,6 +25,7 @@ window.MNN_STRINGS = {
       conversation: 'Conversation phrases',
       places: 'Cities and places',
       store: 'Useful words: department store',
+      colours: 'Useful words: colours and tastes',
       calendar: 'Calendar'
     },
     orderPrompt: 'Put the words in the right order.',
@@ -145,6 +146,7 @@ window.MNN_STRINGS = {
       conversation: '会话用语',
       places: '城市和地点',
       store: '参考词汇：百货商店',
+      colours: '参考词汇：颜色和味道',
       calendar: '日期'
     },
     orderPrompt: '请把词语排成正确的顺序。',
