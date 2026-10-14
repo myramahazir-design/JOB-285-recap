@@ -62,6 +62,14 @@ MNN.registerChapter({
       answers: ['の'],
       explanation: { en: '…', zh: '…' },
       why: { 'は': { en: 'Explanation for this common mistake', zh: '…' } }
+    },
+    // Rearrange the sentence. List the pieces in the correct order; they are shuffled for the learner.
+    {
+      type: 'order',
+      translation: { en: 'This is a book.', zh: '这是书。' },
+      pieces: ['これは', '本', 'です。'],
+      answers: [['これは', '本', 'です。']],   // optional: other accepted orders
+      explanation: { en: '…', zh: '…' }
     }
   ]
 });
@@ -70,6 +78,9 @@ MNN.registerChapter({
 Notes on the format:
 
 - Japanese text can use `{漢字|かんじ}` to show furigana.
+- Vocab items can have a `group`: `words`, `expressions`, `countries` or `names`. Items in `names` (textbook company and school names) appear in the review but not in the quiz.
+- Grammar items can have `notes`: a list of short points shown under the pattern.
+- Any question can have a `translation`, shown under the Japanese.
 - Chinese text uses Simplified characters.
 - Typed answers ignore spaces, full-width or half-width differences and trailing punctuation.
 

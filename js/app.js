@@ -61,7 +61,7 @@
 
   // Japanese text: escapes, supports {漢字|かな} furigana and highlights （　） blanks.
   function jp(s, fill) {
-    var html = esc(s).replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>');
+    var html = esc(s).replace(/\{([^|}]+)\|([^}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>').replace(/\n/g, '<br>');
     return html.replace(/[（(]\s*[　 ]?\s*[）)]/g, function () {
       return fill != null
         ? '<span class="blank blank--filled">' + esc(fill) + '</span>'
@@ -105,7 +105,7 @@
   function speak(text) {
     if (!canSpeak) return;
     window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(text.replace(/[〜～]/g, ''));
+    var u = new SpeechSynthesisUtterance(text.replace(/[〜～［］\[\]]/g, ''));
     u.lang = 'ja-JP';
     u.rate = 0.85;
     var voice = window.speechSynthesis.getVoices().filter(function (v) { return /^ja/i.test(v.lang); })[0];
@@ -185,7 +185,8 @@
 
   function quizLength(ch, mode) {
     if (mode === 'grammar-quiz') return ch.grammarQuiz.length;
-    return ch.vocabQuiz.length || Math.min(10, ch.vocab.length >= 4 ? ch.vocab.length : 0);
+    var n = ch.vocab.filter(function (v) { return v.group !== 'names' && v.en; }).length;
+    return ch.vocabQuiz.length || (n >= 4 ? Math.min(10, n) : 0);
   }
 
   function renderChapter(ch) {
@@ -201,12 +202,12 @@
         SPR.svg(GUIDE[m]) +
         '<span class="mode-text"><span class="mode-jp">' + MODE_JP[m] + '</span>' +
         '<span class="mode-name">' + esc(t('modes')[m]) + '</span>' +
-        '<span class="mode-meta">' + esc(t('modeDesc')[m]) + ' · ' + esc(counts[m]) + '</span></span></a>';
+        '<span class="mode-meta">' + esc(t('modeDesc')[m]) + ' · ' + esc(counts[m]) +
+        (m === 'grammar-quiz' && ch.sampleQuiz ? ' · ' + esc(t('sampleTag')) : '') + '</span></span></a>';
     }).join('');
 
     app.innerHTML = '<section class="screen">' +
-      '<div class="toprow">' + backLink('#/', t('allLessons')) +
-      (ch.sample ? '<span class="badge">' + esc(t('sample')) + '</span>' : '') + '</div>' +
+      '<div class="toprow">' + backLink('#/', t('allLessons')) + '</div>' +
       '<div class="chapter-head"><div class="kanji">第' + kanjiNum(ch.id) + '課</div>' +
       '<div class="title-jp">' + esc(ch.title.jp) + '</div>' +
       '<div class="title-tr">' + esc(tx(ch.title)) + '</div></div>' +
@@ -242,7 +243,8 @@
     if (!ch.vocab.length) return emptyScreen(ch, 'vocab');
     if (view.index == null) view.index = 0;
     var v = ch.vocab[view.index];
-    var card = '<div class="word-jp" lang="ja">' + jp(v.jp) + '</div>' +
+    var card = (v.group ? '<div class="chip">' + esc(t('groups')[v.group] || v.group) + '</div>' : '') +
+      '<div class="word-jp" lang="ja">' + jp(v.jp) + '</div>' +
       (v.kanji ? '<div class="word-kanji" lang="ja">' + esc(v.kanji) + '</div>' : '') +
       '<div class="word-divider"></div>' +
       '<div class="word-meaning">' + esc(tx(v)) + '</div>' +
@@ -257,10 +259,14 @@
     var g = ch.grammar[view.index];
     var examples = (g.examples || []).map(function (ex) {
       return '<div class="example"><div class="example-jp" lang="ja">' + jp(ex.jp) + '</div>' +
-        '<div class="example-tr">' + esc(tx(ex)) + '</div></div>';
+        '<div class="example-tr">' + esc(tx(ex)).replace(/\n/g, '<br>') + '</div></div>';
+    }).join('');
+    var notes = (g.notes || []).map(function (nt) {
+      return '<li>' + jp(tx(nt)) + '</li>';
     }).join('');
     var card = '<div class="pattern" lang="ja">' + esc(g.pattern) + '</div>' +
       '<div class="pattern-title">' + esc(tx(g.title)) + '</div>' +
+      (notes ? '<ul class="notes"><li class="notes-head">' + esc(t('noteLabel')) + '</li>' + notes + '</ul>' : '') +
       (examples ? '<div class="examples"><h3>' + esc(t('examples')) + '</h3>' + examples + '</div>' : '');
     studyFrame(ch, 'grammar', ch.grammar, card, esc(tx(g.explain)));
   }
@@ -285,14 +291,23 @@
   // { type, prompt, jp, choices: [{ value, correct, why }], answers, why, explanation }
   function normalizeQuestion(q) {
     var out = {
-      type: q.type === 'input' ? 'input' : 'choice',
-      prompt: q.prompt,
+      type: q.type === 'input' || q.type === 'order' ? q.type : 'choice',
+      prompt: q.prompt || (q.type === 'order' ? both('orderPrompt') : null),
       jp: q.jp || '',
+      translation: q.translation,
       explanation: q.explanation,
       why: q.why || {}
     };
     if (out.type === 'input') {
       out.answers = q.answers || [q.answer];
+      return out;
+    }
+    if (out.type === 'order') {
+      // pieces are listed in the correct order; `answers` can add other accepted orders.
+      out.pieces = q.pieces;
+      out.answers = (q.answers || [q.pieces]).map(function (a) { return a.join(''); });
+      out.correctText = q.pieces.join(' ');
+      out.tiles = shuffleTiles(q.pieces);
       return out;
     }
     var answerIdx = typeof q.answer === 'number' ? q.answer : q.choices.indexOf(q.answer);
@@ -303,11 +318,25 @@
     return out;
   }
 
+  // Shuffled piece indices, never left in the already-correct order.
+  function shuffleTiles(pieces) {
+    var idx = pieces.map(function (p, i) { return i; });
+    for (var tries = 0; tries < 10; tries++) {
+      var s = shuffle(idx);
+      if (s.map(function (i) { return pieces[i]; }).join('') !== pieces.join('')) return s;
+    }
+    return idx.slice().reverse();
+  }
+
   // When a chapter has no authored vocab quiz, build one from its word list.
-  function generateVocabQuiz(vocab) {
+  function generateVocabQuiz(all) {
+    var vocab = all.filter(function (v) { return v.group !== 'names' && v.en; });
     if (vocab.length < 4) return [];
     return shuffle(vocab).slice(0, 10).map(function (item, n) {
-      var others = shuffle(vocab.filter(function (v) { return v !== item; })).slice(0, 3);
+      // Prefer look-alike options from the same group (e.g. countries vs countries).
+      var same = vocab.filter(function (v) { return v !== item && v.group === item.group; });
+      var pool = same.length >= 3 ? same : vocab.filter(function (v) { return v !== item; });
+      var others = shuffle(pool).slice(0, 3);
       var meaning = { en: item.en, zh: item.zh };
       if (n % 2 === 0) {
         // Japanese -> meaning
@@ -348,7 +377,7 @@
   }
 
   function startQuiz(questions) {
-    view.quiz = { questions: questions, i: 0, score: 0, answered: null, wrong: [] };
+    view.quiz = { questions: questions, i: 0, score: 0, answered: null, wrong: [], picked: [] };
   }
 
   function renderQuiz(ch, mode) {
@@ -365,10 +394,24 @@
     var bubble = esc(tx(q.prompt));
     if (a && a.correct) bubble = '<strong>' + esc(t('correctLines')[a.cheer]) + '</strong>';
 
-    var correctText = q.type === 'input' ? q.answers[0] : tx(q.choices.filter(function (c) { return c.correct; })[0].value);
-    var body = q.jp ? '<div class="q-jp" lang="ja">' + jp(q.jp, a ? correctText : null) + '</div>' : '';
+    var body = q.jp ? '<div class="q-jp" lang="ja">' + jp(q.jp, a ? fillText(q) : null) + '</div>' : '';
+    if (q.translation) body += '<div class="q-tr">' + esc(tx(q.translation)) + '</div>';
 
-    if (q.type === 'choice') {
+    if (q.type === 'order') {
+      var picked = quiz.picked;
+      var line = picked.length ? picked.map(function (pos) {
+        return '<button type="button" class="btn tile" data-act="unpick" data-pos="' + pos + '"' + (a ? ' disabled' : '') + ' lang="ja">' +
+          esc(q.pieces[q.tiles[pos]]) + '</button>';
+      }).join('') : '<span class="order-hint">' + esc(t('orderHint')) + '</span>';
+      body += '<div class="order-line' + (a ? (a.correct ? ' is-correct' : ' is-wrong') : '') + '">' + line + '</div>' +
+        '<div class="order-bank">' + q.tiles.map(function (pieceIdx, pos) {
+          var used = picked.indexOf(pos) >= 0;
+          return '<button type="button" class="btn tile' + (used ? ' is-used' : '') + '" data-act="pick" data-pos="' + pos + '"' +
+            (used || a ? ' disabled' : '') + ' lang="ja">' + esc(q.pieces[pieceIdx]) + '</button>';
+        }).join('') + '</div>' +
+        (a ? '' : '<div class="feedback"><button class="btn btn--primary" type="button" data-act="check-order"' +
+          (picked.length === q.tiles.length ? '' : ' disabled') + '>' + esc(t('check')) + '</button></div>');
+    } else if (q.type === 'choice') {
       body += '<div class="choices">' + q.choices.map(function (c, idx) {
         var cls = '';
         if (a) {
@@ -406,6 +449,13 @@
     }
   }
 
+  // The text that fills a （　） blank once the question is answered.
+  function fillText(q) {
+    if (q.type === 'input') return q.answers[0];
+    if (q.type === 'order') return q.correctText;
+    return tx(q.choices.filter(function (c) { return c.correct; })[0].value);
+  }
+
   function answerQuestion(given, choiceIdx) {
     var quiz = view.quiz;
     var q = quiz.questions[quiz.i];
@@ -415,6 +465,10 @@
       correct = c.correct;
       why = c.why;
       given = tx(c.value);
+    } else if (q.type === 'order') {
+      var words = quiz.picked.map(function (pos) { return q.pieces[q.tiles[pos]]; });
+      given = words.join(' ');
+      correct = q.answers.indexOf(words.join('')) >= 0;
     } else {
       var norm = normalizeAnswer(given);
       correct = q.answers.some(function (ans) { return normalizeAnswer(ans) === norm; });
@@ -433,14 +487,15 @@
     var character = GUIDE[route.mode];
 
     openModal(function () {
-      var correctText = q.type === 'input'
-        ? q.answers.join(' / ')
+      var correctText = q.type === 'input' ? q.answers.join(' / ')
+        : q.type === 'order' ? q.correctText
         : tx(q.choices.filter(function (c) { return c.correct; })[0].value);
       if (q.type === 'choice') given = tx(q.choices[choiceIdx].value);
       return '<div class="modal-head">' + SPR.svg(character) +
       '<div><div class="modal-who">' + esc(tx(SPR.CHARACTERS[character])) + '</div>' +
       '<h2 class="modal-title" id="modal-title">' + esc(t('wrongTitle')) + '</h2></div></div>' +
-      (q.jp ? '<div class="q-jp" lang="ja" style="font-size:19px">' + jp(q.jp, q.type === 'input' ? q.answers[0] : correctText) + '</div>' : '') +
+      (q.jp ? '<div class="q-jp" lang="ja" style="font-size:19px">' + jp(q.jp, fillText(q)) + '</div>' : '') +
+      (q.translation ? '<div class="q-tr">' + esc(tx(q.translation)) + '</div>' : '') +
       '<div class="answer-row answer-row--wrong"><span class="lbl">' + esc(t('yourAnswer')) + '</span>' +
       '<span class="val" lang="ja">' + esc(given || t('emptyAnswer')) + '</span></div>' +
       '<div class="answer-row answer-row--right"><span class="lbl">' + esc(t('correctAnswer')) + '</span>' +
@@ -540,15 +595,28 @@
     if (act === 'choose' && view.quiz && !view.quiz.answered) {
       answerQuestion(null, Number(el.getAttribute('data-idx')));
     }
+    if (act === 'pick' && view.quiz && !view.quiz.answered) {
+      view.quiz.picked.push(Number(el.getAttribute('data-pos')));
+      render();
+    }
+    if (act === 'unpick' && view.quiz && !view.quiz.answered) {
+      var pos = Number(el.getAttribute('data-pos'));
+      view.quiz.picked = view.quiz.picked.filter(function (p) { return p !== pos; });
+      render();
+    }
+    if (act === 'check-order' && view.quiz && !view.quiz.answered) answerQuestion(null, null);
     if (act === 'next-q') {
       view.quiz.i++;
+      view.quiz.picked = [];
       view.quiz.answered = null;
       render();
       window.scrollTo(0, 0);
     }
     if (act === 'retry-wrong') {
       startQuiz(shuffle(view.quiz.wrong).map(function (q) {
-        return q.type === 'choice' ? Object.assign({}, q, { choices: shuffle(q.choices) }) : q;
+        if (q.type === 'choice') return Object.assign({}, q, { choices: shuffle(q.choices) });
+        if (q.type === 'order') return Object.assign({}, q, { tiles: shuffleTiles(q.pieces) });
+        return q;
       }));
       render();
     }

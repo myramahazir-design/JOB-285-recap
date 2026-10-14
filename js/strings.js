@@ -12,7 +12,16 @@ window.MNN_STRINGS = {
     allLessons: 'All lessons',
     backToLesson: 'Back to lesson',
     comingSoon: 'Coming soon',
-    sample: 'Sample content',
+    sampleTag: 'sample questions',
+    noteLabel: 'Note',
+    groups: {
+      words: 'Words',
+      expressions: 'Practice C phrases',
+      countries: 'Countries',
+      names: 'Names in the textbook'
+    },
+    orderPrompt: 'Put the words in the right order.',
+    orderHint: 'Tap the words below in order',
     modes: {
       vocab: 'Vocabulary',
       grammar: 'Grammar',
@@ -83,7 +92,16 @@ window.MNN_STRINGS = {
     allLessons: '所有课程',
     backToLesson: '返回本课',
     comingSoon: '即将推出',
-    sample: '示例内容',
+    sampleTag: '示例题',
+    noteLabel: '注意',
+    groups: {
+      words: '单词',
+      expressions: '练习C 用语',
+      countries: '国家',
+      names: '课文中的名称'
+    },
+    orderPrompt: '请把词语排成正确的顺序。',
+    orderHint: '按顺序点击下面的词语',
     modes: {
       vocab: '词汇',
       grammar: '语法',

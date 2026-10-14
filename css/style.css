@@ -481,6 +481,57 @@ h1, h2, h3 { font-weight: 400; margin: 0; line-height: 1.3; }
 .choice.is-wrong { background: var(--wrong-soft); }
 .choice.is-wrong::after { content: ' ×'; color: var(--red); }
 
+.q-tr { font-size: 15px; color: var(--ink-soft); margin-top: 6px; }
+
+/* Rearrange-the-sentence questions */
+.order-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 72px;
+  margin-top: 20px;
+  padding: 10px;
+  background: var(--paper-2);
+  box-shadow: inset 0 -4px 0 0 rgba(42, 26, 18, .12);
+}
+.order-line.is-correct { background: var(--green-soft); }
+.order-line.is-wrong { background: var(--wrong-soft); }
+.order-hint { color: var(--ink-soft); font-size: 14px; }
+.order-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+.tile { font-size: 19px; min-height: 48px; padding: 6px 14px 8px; }
+.tile.is-used { visibility: hidden; }
+.order-line .tile[disabled] { opacity: 1; cursor: default; }
+
+/* Vocab group label and grammar notes */
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  padding: 1px 8px;
+  margin-bottom: 10px;
+  background: var(--indigo);
+  color: #fff;
+}
+.notes {
+  list-style: none;
+  text-align: left;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  background: var(--yellow-soft);
+  box-shadow: inset 4px 0 0 0 var(--yellow);
+  font-size: 15px;
+}
+.notes li + li { margin-top: 4px; }
+.notes li:not(.notes-head)::before { content: '▸ '; color: var(--red); }
+.notes-head { font-size: 12px; color: var(--ink-soft); }
+
 .answer-form {
   display: flex;
   gap: 10px;
