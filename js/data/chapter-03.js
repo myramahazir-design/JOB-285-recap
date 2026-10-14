@@ -4,6 +4,28 @@ MNN.registerChapter({
   id: 3,
   title: { jp: 'これをください', en: "I'll take this, please", zh: '请给我这个' },
 
+  // The lesson's 会話, shown first in the Conversation section.
+  dialogue: {
+    title: 'これを ください',
+    parts: [
+      [
+        { who: '店員A', jp: 'いらっしゃいませ。', en: 'Welcome.', zh: '欢迎光临。' },
+        { who: 'マリア', jp: 'すみません。 ワイン売り場は どこですか。', en: 'Excuse me. Where is the wine section?', zh: '请问，葡萄酒柜台在哪里？' },
+        { who: '店員A', jp: '地下1階です。', en: 'It’s on the first basement floor.', zh: '在地下一层。' },
+        { who: 'マリア', jp: 'どうも。', en: 'Thanks.', zh: '谢谢。' }
+      ],
+      [
+        { who: 'マリア', jp: 'すみません。 その ワインを 見せて ください。', en: 'Excuse me. Please show me that wine.', zh: '请问，请给我看看那瓶葡萄酒。' },
+        { who: '店員B', jp: 'はい、どうぞ。', en: 'Yes, here you are.', zh: '好的，请看。' },
+        { who: 'マリア', jp: 'これは どこの ワインですか。', en: 'Where is this wine from?', zh: '这是哪里产的葡萄酒？' },
+        { who: '店員B', jp: '日本のです。', en: 'It’s Japanese.', zh: '是日本的。' },
+        { who: 'マリア', jp: 'いくらですか。', en: 'How much is it?', zh: '多少钱？' },
+        { who: '店員B', jp: '2,500円です。', en: 'It’s 2,500 yen.', zh: '2500日元。' },
+        { who: 'マリア', jp: 'じゃ、これを ください。', en: 'Then I’ll take this, please.', zh: '那么，请给我这个。' }
+      ]
+    ]
+  },
+
   vocab: [
     // ----- Words -----
     { group: 'words', jp: 'ここ', en: 'here, this place', zh: '这里' },
@@ -54,6 +76,12 @@ MNN.registerChapter({
       note: { en: 'A short, casual thank-you, for example after someone gives you directions.', zh: '简短随意的“谢谢”，比如别人给你指路之后。' } },
 
     // ----- Conversation phrases -----
+    { group: 'conversation', jp: '〜うりばは どこですか。', kanji: '〜売り場は どこですか。', en: 'Where is the 〜 section?', zh: '～柜台在哪里？',
+      note: { en: 'Ask staff in a department store where to find a section, like ワイン売り場 or くつ売り場.', zh: '在百货商店问店员某个柜台在哪里，比如ワイン売り場、くつ売り場。' } },
+    { group: 'conversation', jp: 'これは どこの 〜ですか。', en: 'Where is this 〜 from?', zh: '这是哪里产的～？',
+      note: { en: 'Ask which country or company made a product. The answer can drop the noun: 日本のです.', zh: '问商品是哪个国家或公司生产的。回答时可以省略名词：日本のです。' } },
+    { group: 'conversation', jp: 'いくらですか。', en: 'How much is it?', zh: '多少钱？',
+      note: { en: 'Ask the price of something in a shop.', zh: '在商店里问东西的价格。' } },
     { group: 'conversation', jp: 'いらっしゃいませ。', en: 'Welcome. / May I help you?', zh: '欢迎光临。',
       note: { en: 'Said by shop staff to a customer or guest coming in.', zh: '店员对进店的顾客或客人说的话。' } },
     { group: 'conversation', jp: '［〜を］ みせて ください。', kanji: '［〜を］ 見せて ください。', en: 'Please show me [〜].', zh: '请给我看看［～］。',
