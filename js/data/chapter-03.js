@@ -1,5 +1,5 @@
 // Lesson 3, from the textbook's Vocabulary, Useful Words and Grammar Notes pages.
-// The grammar quiz will be built from the practice pages once they are added.
+// Grammar quiz: story practice built from the practice pages (練習A/B/C, 問題).
 MNN.registerChapter({
   id: 3,
   title: { jp: 'これをください', en: "I'll take this, please", zh: '请给我这个' },
@@ -184,6 +184,283 @@ MNN.registerChapter({
   // Left empty: the vocab quiz is generated from the word list above.
   vocabQuiz: [],
 
-  // Story practice will be added from the Lesson 3 practice pages.
-  grammarQuiz: []
+  // Story practice: "Day 3 · The department store". Built from 練習A, 練習B, 練習C and 問題,
+  // with the partner exercises turned into conversations with the town's characters.
+  grammarQuiz: [
+    {
+      type: 'scene', who: 'neko',
+      title: { en: 'Day 3 · The department store', zh: '第3天 · 百货商店' },
+      lines: [
+        { en: '{name}! Today we’re going shopping at the big Minna Department Store.', zh: '{name}！今天我们去大家町的大百货商店购物吧。' },
+        { en: 'It has eight floors, so you’ll need to ask where things are. Let’s start by finding our way around!', zh: '那里有八层楼，所以你得问清楚东西在哪里。我们先来熟悉一下路吧！' }
+      ]
+    },
+
+    // ----- Part 1: finding your way (練習A 1–4, 練習B 1–4, 問題3, 問題4, 問題5) -----
+    {
+      prompt: { en: 'You and Neko-chan are standing inside the canteen, with people eating all around you. What do you say?', zh: '你和小猫正站在食堂里，周围都是吃饭的人。你该怎么说？' },
+      jp: '（　）は 食堂です。',
+      choices: ['ここ', 'そこ', 'あそこ', 'これ'],
+      answer: 'ここ',
+      explanation: { en: 'You’re both IN the canteen, so it’s ここ (this place, where we are).', zh: '你们俩就在食堂里，所以用ここ（这里，我们所在的地方）。' },
+      why: {
+        'そこ': { en: 'そこ is the place where the listener is, or a little way away. You’re standing right in it.', zh: 'そこ指听话人所在的地方或稍远处，而你们就站在这里。' },
+        'あそこ': { en: 'あそこ is a place far from both of you.', zh: 'あそこ指离你们俩都远的地方。' },
+        'これ': { en: 'これ points at a thing. For a place, use ここ.', zh: 'これ指东西。说场所要用ここ。' }
+      }
+    },
+    {
+      prompt: { en: 'Tanuki-sensei asks where the toilet is. It’s far down the corridor, away from both of you.', zh: '狸猫老师问厕所在哪里。厕所在走廊尽头，离你们俩都很远。' },
+      talk: [{ who: 'tanuki', jp: 'トイレは どこですか。' }, { who: 'you', jp: '（　）です。' }],
+      choices: ['あそこ', 'あれ', 'あの', 'どこ'],
+      answer: 'あそこ',
+      explanation: { en: 'A place far from both of you is あそこ.', zh: '离你们俩都远的场所用あそこ。' },
+      why: {
+        'あれ': { en: 'あれ points at a thing, not a place. Places use ここ／そこ／あそこ.', zh: 'あれ指东西，不指场所。场所要用ここ／そこ／あそこ。' },
+        'あの': { en: 'あの needs a noun after it, like あの 部屋.', zh: 'あの后面要接名词，比如あの 部屋。' },
+        'どこ': { en: 'どこ is the question word “where?”. You’re answering, not asking.', zh: 'どこ是疑问词“哪里？”。你是在回答，不是在提问。' }
+      }
+    },
+    {
+      prompt: { en: 'You’re pointing at a car right next to you in the showroom.', zh: '你在展厅里指着身边的一辆车。' },
+      jp: '（　）は ドイツの {車|くるま}です。',
+      choices: ['これ', 'この', 'ここ'],
+      answer: 'これ',
+      explanation: { en: 'The car is a thing near you, and it stands alone before は, so it’s これ.', zh: '车是你身边的东西，而且单独放在は前面，所以用これ。' },
+      why: {
+        'この': { en: 'この needs a noun after it: この 車は…', zh: 'この后面要接名词：この 車は……' },
+        'ここ': { en: 'ここ is a place. “This place is a German car” doesn’t make sense.', zh: 'ここ指场所。“这里是德国车”说不通。' }
+      }
+    },
+    {
+      prompt: { en: 'Neko-chan is holding up a bag. Tell her it’s yours. Choose the pair that fits both blanks.', zh: '小猫举着一个包。告诉她那是你的。请选择适合两个空的一组。' },
+      jp: '（　）かばんは（　）です。',
+      choices: ['その … わたしの', 'それ … わたしの', 'その … わたし', 'そこ … わたしの'],
+      answer: 'その … わたしの',
+      explanation: { en: 'その + noun (the bag near the listener), and わたしの = mine.', zh: 'その＋名词（听话人附近的包），わたしの＝我的。' },
+      why: {
+        'それ … わたしの': { en: 'それ can’t come directly before a noun. Use その かばん.', zh: 'それ不能直接放在名词前面，要说その かばん。' },
+        'その … わたし': { en: 'かばんは わたしです means “The bag is me”. You need わたしの (mine).', zh: 'かばんは わたしです的意思是“包是我”。要用わたしの（我的）。' },
+        'そこ … わたしの': { en: 'そこ is a place. To point at a thing with a noun, use その.', zh: 'そこ指场所。指着东西并接名词时要用その。' }
+      }
+    },
+    {
+      prompt: { en: 'You need to make a phone call. Ask a shop assistant.', zh: '你需要打电话。问问店员。' },
+      jp: 'すみません。{電話|でんわ}は（　）ですか。',
+      choices: ['どこ', 'だれ', '何'],
+      answer: 'どこ',
+      explanation: { en: 'You’re asking where the phone is, so use どこ.', zh: '你问的是电话在哪里，所以用どこ。' },
+      why: {
+        'だれ': { en: 'だれ asks “who?”. A phone isn’t a person.', zh: 'だれ问的是“谁？”。电话不是人。' },
+        '何': { en: '何ですか asks “what is it?”. You already know it’s a phone.', zh: '何ですか问“是什么？”。你已经知道是电话了。' }
+      }
+    },
+    {
+      prompt: { en: 'You ask a staff member politely where the lift is. She points that way. What does she say?', zh: '你礼貌地问店员电梯在哪里。她指着那边。她会怎么说？' },
+      talk: [{ who: 'you', jp: 'すみません。エレベーターは どちらですか。' }, { who: 'kitsune', jp: '（　）' }],
+      choices: ['あちらです。', 'あれです。', 'あそこですか。', 'どちらです。'],
+      answer: 'あちらです。',
+      explanation: { en: 'どちら asks “which way?” politely, and あちら answers it: “over there, that way”.', zh: 'どちら礼貌地问“哪边？”，用あちら回答：“在那边”。' },
+      why: {
+        'あれです。': { en: 'あれ points at a thing, not a direction or place.', zh: 'あれ指东西，不指方向或场所。' },
+        'あそこですか。': { en: 'That turns it into a question. She’s answering yours.', zh: '这变成了问句，但她是在回答你的问题。' },
+        'どちらです。': { en: 'どちら is the question word. The answer is あちら (or こちら／そちら).', zh: 'どちら是疑问词。回答要用あちら（或こちら／そちら）。' }
+      }
+    },
+    {
+      type: 'input',
+      prompt: { en: 'Read the answer, then type the question word.', zh: '先看回答，再输入疑问词。' },
+      jp: 'カメラ{売|う}り{場|ば}は（　）ですか。\n……５{階|かい}です。',
+      answers: ['なんがい', '何階', 'どこ', 'どちら'],
+      explanation: { en: 'Ask the floor with 何階 (なんがい), or simply どこ／どちら (where).', zh: '问楼层可以用何階（なんがい），也可以用どこ／どちら（哪里）。' },
+      why: {
+        'なんかい': { en: 'Close! After 何, 階 is read がい: なんがい.', zh: '差一点！何后面的階读作がい：なんがい。' },
+        'なに': { en: '何ですか would ask “what is it?”. The answer is a floor, so ask なんがい or どこ.', zh: '何ですか问的是“是什么？”。回答是楼层，所以要问なんがい或どこ。' },
+        'だれ': { en: 'だれ asks “who?”. The answer is a floor.', zh: 'だれ问的是“谁？”。回答是楼层。' }
+      }
+    },
+    {
+      type: 'order',
+      prompt: { en: 'You need the key to the meeting room. Ask where it is.', zh: '你需要会议室的钥匙。问问在哪里。' },
+      translation: { en: 'Where is the key to the meeting room?', zh: '会议室的钥匙在哪里？' },
+      pieces: ['会議室', 'の', 'かぎ', 'は', 'どこ', 'ですか。'],
+      explanation: { en: '会議室の かぎ (the meeting room’s key) is the topic, then どこですか asks where.', zh: '会議室の かぎ（会议室的钥匙）是主题，然后用どこですか问在哪里。' }
+    },
+
+    {
+      type: 'scene', who: 'tanuki',
+      title: { en: 'Part 2 · The café on the 8th floor', zh: '第2部分 · 八楼的咖啡厅' },
+      lines: [
+        { en: 'Ah, {name}! Come and sit with us. Some of my friends are shopping here today.', zh: '啊，{name}！过来一起坐吧。我的几个朋友今天也在这里购物。' },
+        { en: 'Ask them about themselves, and remember to be polite!', zh: '问问他们的情况吧，记得要礼貌哦！' }
+      ]
+    },
+
+    // ----- Part 2: getting to know people (練習B 5–6, 練習C 2, 問題5) -----
+    {
+      card: { name: 'サントス', country: 'ブラジル', job: '{会社員|かいしゃいん}', org: 'ブラジルエアー' },
+      prompt: { en: 'Ask Mr. Santos politely which country he’s from.', zh: '礼貌地问桑托斯先生是哪国人。' },
+      jp: 'サントスさんの お{国|くに}は（　）ですか。',
+      choices: ['どちら', '何', 'だれ', 'どなた'],
+      answer: 'どちら',
+      explanation: { en: 'To ask which country, company or school someone is from, use どちら (polite) or どこ. お国 also shows respect.', zh: '问对方的国家、公司或学校时用どちら（礼貌）或どこ。お国也表示尊敬。' },
+      why: {
+        '何': { en: 'The textbook says なん can’t be used to ask someone’s country, company or school.', zh: '课本说明过：问国家、公司或学校时不能用なん。' },
+        'だれ': { en: 'だれ asks “who?”, but a country isn’t a person.', zh: 'だれ问的是“谁？”，但国家不是人。' },
+        'どなた': { en: 'どなた is the polite “who?”. You’re asking about a country.', zh: 'どなた是礼貌地问“谁？”，而你问的是国家。' }
+      }
+    },
+    {
+      prompt: { en: 'Mr. Schmidt is from Germany, and his home is in Berlin. How does he answer your second question?', zh: '施密特先生来自德国，家在柏林。他会怎么回答你的第二个问题？' },
+      talk: [
+        { who: 'you', jp: 'お国は どちらですか。' },
+        { who: 'シュミット', jp: 'ドイツです。' },
+        { who: 'you', jp: 'うちは どちらですか。' },
+        { who: 'シュミット', jp: '（　）' }
+      ],
+      choices: ['ベルリンです。', 'ドイツです。', 'わたしの うちです。', 'どちらですか。'],
+      answer: 'ベルリンです。',
+      explanation: { en: 'うちは どちらですか asks where someone’s home is, so he names the city: ベルリンです.', zh: 'うちは どちらですか问的是家在哪里，所以他说出城市名：ベルリンです。' },
+      why: {
+        'ドイツです。': { en: 'He already said his country. うち asks about his home, so give the city.', zh: '他已经说过国家了。うち问的是家，要说城市。' },
+        'わたしの うちです。': { en: 'That means “It’s my home”, which doesn’t answer where it is.', zh: '这句话的意思是“是我的家”，没有回答家在哪里。' },
+        'どちらですか。': { en: 'That repeats the question instead of answering it.', zh: '这是重复问题，而不是回答。' }
+      }
+    },
+    {
+      card: { name: 'ワット', country: 'イギリス', job: '{先生|せんせい}', org: 'さくら{大学|だいがく}' },
+      prompt: { en: 'Read the card. Which word fits the question?', zh: '看名片。哪个词适合这个问题？' },
+      jp: 'ワットさんの（　）は どちらですか。\n……さくら{大学|だいがく}です。',
+      choices: ['大学', '会社', 'お国', 'うち'],
+      answer: '大学',
+      explanation: { en: 'The answer is さくら大学, a university, so the question asks which university: 大学は どちらですか.', zh: '回答是さくら大学，是一所大学，所以问的是哪所大学：大学は どちらですか。' },
+      why: {
+        '会社': { en: 'さくら大学 is a university, not a company.', zh: 'さくら大学是大学，不是公司。' },
+        'お国': { en: 'The answer would be a country, like イギリス.', zh: '那样的话回答应该是国家，比如イギリス。' },
+        'うち': { en: 'The answer would be the place he lives, like a city.', zh: '那样的话回答应该是他住的地方，比如城市名。' }
+      }
+    },
+    {
+      prompt: { en: 'Read the answer carefully. What kind of company is Power Electric?', zh: '仔细看回答。Power电气是什么公司？' },
+      jp: 'パワー{電気|でんき}は（　）の {会社|かいしゃ}ですか。\n……コンピューターの {会社|かいしゃ}です。',
+      choices: ['何', 'どこ', 'どちら', 'だれ'],
+      answer: '何',
+      explanation: { en: '何の 会社 asks what kind of company it is (what it makes). The answer: コンピューターの 会社 (a computer company).', zh: '何の 会社问的是什么样的公司（做什么的）。回答：コンピューターの 会社（电脑公司）。' },
+      why: {
+        'どこ': { en: 'どこの 会社 would ask which country the company is from, like 日本の 会社.', zh: 'どこの 会社问的是哪个国家的公司，比如日本の 会社。' },
+        'どちら': { en: 'どちら asks where or which. The answer tells you what kind of company it is.', zh: 'どちら问的是哪里或哪个，而回答说明的是公司的种类。' },
+        'だれ': { en: 'だれの 会社 would ask who owns the company.', zh: 'だれの 会社问的是公司是谁的。' }
+      }
+    },
+
+    {
+      type: 'scene', who: 'kitsune',
+      title: { en: 'Part 3 · Shopping time', zh: '第3部分 · 购物时间' },
+      lines: [
+        { en: '{name}! You found my counter on the 1st floor.', zh: '{name}！你找到我在一楼的柜台啦。' },
+        { en: 'Let’s see if you can ask where things come from and how much they cost, then buy something nice!', zh: '看看你能不能问清楚东西的产地和价格，然后买点好东西吧！' }
+      ]
+    },
+
+    // ----- Part 3: shopping (会話, 練習A 6–7, 練習B 7–8, 練習C 3, 問題5) -----
+    {
+      prompt: { en: 'You walk into Kitsune-san’s shop. What does she say first?', zh: '你走进狐狸小姐的店。她会先说什么？' },
+      talk: [{ who: 'kitsune', jp: '（　）' }],
+      choices: ['いらっしゃいませ。', 'すみません。', 'どうも。', 'お世話に なります。'],
+      answer: 'いらっしゃいませ。',
+      explanation: { en: 'いらっしゃいませ (Welcome!) is what shop staff say when a customer comes in.', zh: 'いらっしゃいませ（欢迎光临！）是顾客进店时店员说的话。' },
+      why: {
+        'すみません。': { en: 'すみません (Excuse me) is what a customer says to get attention.', zh: 'すみません（不好意思）是顾客想引起注意时说的。' },
+        'どうも。': { en: 'どうも is a casual “thanks”.', zh: 'どうも是随意的“谢谢”。' },
+        'お世話に なります。': { en: 'That’s for when you start relying on someone, like a new neighbour.', zh: '这是开始受人照顾时说的，比如对新邻居。' }
+      }
+    },
+    {
+      prompt: { en: 'The bag was made in Korea. How does Kitsune-san answer?', zh: '这个包是韩国制造的。狐狸小姐会怎么回答？' },
+      talk: [{ who: 'you', jp: 'これは どこの かばんですか。' }, { who: 'kitsune', jp: '（　）' }],
+      choices: ['韓国の かばんです。', '韓国人の かばんです。', 'はい、韓国の かばんです。', 'どこの 韓国ですか。'],
+      answer: '韓国の かばんです。',
+      explanation: { en: 'Country + の + product = made in that country: 韓国の かばん.', zh: '国名＋の＋产品＝该国制造：韓国の かばん。' },
+      why: {
+        '韓国人の かばんです。': { en: 'This means “a Korean person’s bag”, which is about the owner, not where it was made.', zh: '这句话的意思是“韩国人的包”，说的是所有者，不是产地。' },
+        'はい、韓国の かばんです。': { en: 'どこ isn’t a yes/no question, so no はい.', zh: 'どこ的问句不是是非疑问句，不用はい。' },
+        'どこの 韓国ですか。': { en: 'That’s a strange question, not an answer.', zh: '这是一个奇怪的问题，而不是回答。' }
+      }
+    },
+    {
+      type: 'input',
+      prompt: { en: 'Read the answer and type the question word.', zh: '看回答，输入疑问词。' },
+      jp: 'これは（　）の ワインですか。\n……イタリアの ワインです。',
+      answers: ['どこ'],
+      explanation: { en: 'To ask which country (or company) something comes from, use どこの.', zh: '问东西的产地（国家或公司）时用どこの。' },
+      why: {
+        'なん': { en: '何の ワイン asks what kind of wine it is. For the country it’s from, use どこの.', zh: '何の ワイン问的是什么种类的酒。问产地要用どこの。' },
+        '何': { en: '何の ワイン asks what kind of wine it is. For the country it’s from, use どこの.', zh: '何の ワイン问的是什么种类的酒。问产地要用どこの。' },
+        'どちら': { en: 'Close, but for where a product is made, the textbook uses どこの.', zh: '很接近，但问产品产地时课本用どこの。' }
+      }
+    },
+    {
+      prompt: { en: 'The tie costs ¥1,500. How do you say the price?', zh: '这条领带1,500日元。价格怎么说？' },
+      talk: [{ who: 'you', jp: 'この ネクタイは いくらですか。' }, { who: 'kitsune', jp: '（　）' }],
+      choices: ['せんごひゃくえんです。', 'いっせんごひゃくえんです。', 'じゅうごひゃくえんです。', 'せんごじゅうえんです。'],
+      answer: 'せんごひゃくえんです。',
+      explanation: { en: '1,000 is just せん (no いち), and 500 is ごひゃく: せんごひゃくえん.', zh: '1,000就是せん（不加いち），500是ごひゃく：せんごひゃくえん。' },
+      why: {
+        'いっせんごひゃくえんです。': { en: '1,000 is just せん. You don’t add いち in front.', zh: '1,000就是せん，前面不加いち。' },
+        'じゅうごひゃくえんです。': { en: 'Japanese doesn’t say “fifteen hundred”. It’s 1,000 + 500 = せんごひゃく.', zh: '日语不说“十五百”，而是1,000＋500＝せんごひゃく。' },
+        'せんごじゅうえんです。': { en: 'That’s ¥1,050. 500 is ごひゃく, not ごじゅう (50).', zh: '那是1,050日元。500是ごひゃく，不是ごじゅう（50）。' }
+      }
+    },
+    {
+      prompt: { en: 'Tricky one! The watch costs ¥13,000. How do you say it?', zh: '这题有点难！手表13,000日元。怎么说？' },
+      choices: ['いちまんさんぜんえん', 'じゅうさんせんえん', 'いちまんさんせんえん', 'まんさんぜんえん'],
+      answer: 'いちまんさんぜんえん',
+      explanation: { en: 'Big numbers go in units of 万 (10,000), like Chinese: 1万 3千 = いちまん さんぜん. Note 3,000 changes sound to さんぜん.', zh: '和汉语一样，大数字以“万”为单位：1万3千＝いちまん さんぜん。注意3,000要读成さんぜん。' },
+      why: {
+        'じゅうさんせんえん': { en: 'Japanese doesn’t count “thirteen thousand”. Above 9,999 you use 万: いちまんさんぜん.', zh: '日语不说“十三千”。超过9,999要用万：いちまんさんぜん。' },
+        'いちまんさんせんえん': { en: 'So close! 3,000 changes to さんぜん (ぜ, not せ).', zh: '非常接近！3,000要读成さんぜん（是ぜ不是せ）。' },
+        'まんさんぜんえん': { en: '10,000 needs いち: いちまん. (Only 1,000 drops it: せん.)', zh: '10,000要加いち：いちまん。（只有1,000不加：せん。）' }
+      }
+    },
+    {
+      prompt: { en: 'You want to know the price of the wine. Which word fits?', zh: '你想知道这瓶酒的价格。用哪个词？' },
+      talk: [{ who: 'you', jp: 'すみません。この ワインは（　）ですか。' }, { who: 'kitsune', jp: '２,８００{円|えん}です。' }],
+      choices: ['いくら', '何', 'どこ', 'どちら'],
+      answer: 'いくら',
+      explanation: { en: 'いくらですか asks “how much is it?”.', zh: 'いくらですか问的是“多少钱？”。' },
+      why: {
+        '何': { en: '何ですか asks what it is. You know it’s wine; you want the price.', zh: '何ですか问的是“是什么”。你知道是酒，想问的是价格。' },
+        'どこ': { en: 'どこですか asks where it is.', zh: 'どこですか问的是在哪里。' },
+        'どちら': { en: 'どちらですか asks which way or where.', zh: 'どちらですか问的是哪边或哪里。' }
+      }
+    },
+    {
+      type: 'order',
+      prompt: { en: 'Ask where this coffee comes from.', zh: '问问这咖啡是哪里产的。' },
+      translation: { en: 'Where is this coffee from?', zh: '这是哪里产的咖啡？' },
+      pieces: ['これ', 'は', 'どこ', 'の', 'コーヒー', 'ですか。'],
+      explanation: { en: 'どこの + product asks where it was made: これは どこの コーヒーですか.', zh: 'どこの＋产品问产地：これは どこの コーヒーですか。' }
+    },
+    {
+      prompt: { en: 'You’ve looked at the wine and decided to buy it. What do you say?', zh: '你看了这瓶酒，决定买下。你该说什么？' },
+      jp: 'じゃ、（　）。',
+      choices: ['これを ください', 'これを 見せて ください', 'これは いくらですか', 'いらっしゃいませ'],
+      answer: 'これを ください',
+      explanation: { en: 'じゃ、これを ください = “Then I’ll take this, please.” That’s the title of this lesson!', zh: 'じゃ、これを ください＝“那么，请给我这个。”这正是本课的标题！' },
+      why: {
+        'これを 見せて ください': { en: '見せて ください means “please show me”. You’ve already seen it; now you want to buy it.', zh: '見せて ください的意思是“请给我看看”。你已经看过了，现在要买。' },
+        'これは いくらですか': { en: 'That asks the price again. You’ve already decided to buy.', zh: '这是再问一次价格，而你已经决定要买了。' },
+        'いらっしゃいませ': { en: 'That’s what the shop staff says, not the customer.', zh: '这是店员说的话，不是顾客说的。' }
+      }
+    },
+
+    {
+      type: 'scene', who: 'neko',
+      title: { en: 'Epilogue', zh: '尾声' },
+      lines: [
+        { en: 'Look at all your shopping bags, {name}! You found your way around all eight floors.', zh: '{name}，看你买了这么多东西！八层楼你都逛明白了。' },
+        { en: 'Let’s see how you did today.', zh: '来看看你今天的表现吧。' }
+      ]
+    }
+  ]
 });
